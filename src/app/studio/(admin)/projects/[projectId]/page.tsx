@@ -17,8 +17,8 @@ import {
   updateProjectAction,
   updateStepAction,
 } from "@/features/projects/actions";
-import { getProjectForEditing, toTurnStep } from "@/features/projects/queries";
-import { stepTurn } from "@/features/projects/turn";
+import { getProjectForEditing } from "@/features/projects/queries";
+import { stepTurn, toTurnStep } from "@/features/projects/turn";
 import { formatDate } from "@/lib/format/date";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";

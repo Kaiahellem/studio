@@ -40,3 +40,16 @@ export function projectGroup(
   const allFinished = steps.length > 0 && steps.every((s) => s.status === "done" || s.status === "skipped");
   return allFinished ? "done" : "studio";
 }
+
+type RoundRow = { round: number; approvals: { id: string } | null };
+
+function latestRound(rounds: RoundRow[]): TurnStep["latestRound"] {
+  if (rounds.length === 0) return null;
+  const latest = rounds.reduce((a, b) => (b.round > a.round ? b : a));
+  return { round: latest.round, answered: latest.approvals !== null };
+}
+
+// From a database row with its approval rounds.
+export function toTurnStep(step: Pick<TurnStep, "status" | "owner" | "type"> & { approval_rounds: RoundRow[] }): TurnStep {
+  return { status: step.status, owner: step.owner, type: step.type, latestRound: latestRound(step.approval_rounds) };
+}

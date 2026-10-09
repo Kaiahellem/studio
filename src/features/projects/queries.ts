@@ -2,7 +2,7 @@ import "server-only";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { todayInOslo } from "@/lib/format/date";
-import { projectGroup, stepTurn, type ProjectGroup, type TurnStep } from "./turn";
+import { projectGroup, stepTurn, toTurnStep, type ProjectGroup, type TurnStep } from "./turn";
 
 type StepRow = {
   id: string;
@@ -14,16 +14,6 @@ type StepRow = {
   activated_at: string | null;
   approval_rounds: { round: number; approvals: { id: string } | null }[];
 };
-
-function latestRound(rounds: StepRow["approval_rounds"]): TurnStep["latestRound"] {
-  if (rounds.length === 0) return null;
-  const latest = rounds.reduce((a, b) => (b.round > a.round ? b : a));
-  return { round: latest.round, answered: latest.approvals !== null };
-}
-
-export function toTurnStep(step: Pick<StepRow, "status" | "owner" | "type" | "approval_rounds">): TurnStep {
-  return { status: step.status, owner: step.owner, type: step.type, latestRound: latestRound(step.approval_rounds) };
-}
 
 export type DashboardProject = {
   id: string;
