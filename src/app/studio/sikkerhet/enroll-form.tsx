@@ -16,7 +16,7 @@ export function EnrollForm({ next }: { next: string }) {
         <input type="hidden" name="intent" value="start" />
         <Field label={t.auth.security.nameLabel} name="name" placeholder={t.auth.security.namePlaceholder} maxLength={60} />
         <FormMessage error={state.error} />
-        <SubmitButton pendingText={t.common.loading}>{t.auth.security.start}</SubmitButton>
+        <SubmitButton full pendingText={t.common.loading}>{t.auth.security.start}</SubmitButton>
       </form>
     );
   }
@@ -49,7 +49,7 @@ export function EnrollForm({ next }: { next: string }) {
           className="font-mono text-xl tracking-[0.4em]"
           error={state.error}
         />
-        <SubmitButton pendingText={t.auth.checkEmail.verifying}>{t.auth.security.verify}</SubmitButton>
+        <SubmitButton full pendingText={t.auth.checkEmail.verifying}>{t.auth.security.verify}</SubmitButton>
       </form>
     </div>
   );

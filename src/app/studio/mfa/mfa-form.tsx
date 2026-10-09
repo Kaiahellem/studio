@@ -40,7 +40,7 @@ export function MfaForm({ next, factors }: { next: string; factors: { id: string
         className="font-mono text-xl tracking-[0.4em]"
         error={state?.error}
       />
-      <SubmitButton pendingText={t.auth.checkEmail.verifying}>{t.auth.mfa.submit}</SubmitButton>
+      <SubmitButton full pendingText={t.auth.checkEmail.verifying}>{t.auth.mfa.submit}</SubmitButton>
     </form>
   );
 }

@@ -26,7 +26,7 @@ export function CodeForm({ next }: { next: string }) {
           className="font-mono text-xl tracking-[0.4em]"
           error={verifyState?.error}
         />
-        <SubmitButton pendingText={t.auth.checkEmail.verifying}>{t.auth.checkEmail.submit}</SubmitButton>
+        <SubmitButton full pendingText={t.auth.checkEmail.verifying}>{t.auth.checkEmail.submit}</SubmitButton>
       </form>
 
       <form action={resendAction} className="flex flex-col gap-3">

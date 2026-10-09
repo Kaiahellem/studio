@@ -22,7 +22,7 @@ export function LoginForm({ next }: { next: string }) {
         required
         error={state?.error}
       />
-      <SubmitButton pendingText={t.auth.login.sending}>{t.auth.login.submit}</SubmitButton>
+      <SubmitButton full pendingText={t.auth.login.sending}>{t.auth.login.submit}</SubmitButton>
     </form>
   );
 }

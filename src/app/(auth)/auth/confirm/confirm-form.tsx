@@ -28,7 +28,7 @@ export function ConfirmForm({ tokenHash, next }: { tokenHash: string; next: stri
       <input type="hidden" name="token_hash" value={tokenHash} />
       <input type="hidden" name="next" value={next} />
       <p className="text-lg leading-relaxed text-muted">{t.auth.confirm.body}</p>
-      <SubmitButton pendingText={t.auth.checkEmail.verifying}>{t.auth.confirm.submit}</SubmitButton>
+      <SubmitButton full pendingText={t.auth.checkEmail.verifying}>{t.auth.confirm.submit}</SubmitButton>
     </form>
   );
 }

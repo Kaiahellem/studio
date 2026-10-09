@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type SessionUser = {
@@ -8,8 +9,9 @@ export type SessionUser = {
   aal: "aal1" | "aal2";
 };
 
-// Verified claims for the current request, or null when logged out.
-export async function getSessionUser(): Promise<SessionUser | null> {
+// Verified claims for the current request, or null when logged out. Cached per request,
+// so guards can be called from layouts, pages and queries without repeating the work.
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims?.sub) return null;
@@ -20,14 +22,14 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     email: typeof claims.email === "string" ? claims.email : null,
     aal: claims.aal === "aal2" ? "aal2" : "aal1",
   };
-}
+});
 
-export async function isAdminAccount(): Promise<boolean> {
+export const isAdminAccount = cache(async (): Promise<boolean> => {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("is_admin_account");
   if (error) throw error;
   return data === true;
-}
+});
 
 export async function requireUser(next = "/"): Promise<SessionUser> {
   const user = await getSessionUser();
