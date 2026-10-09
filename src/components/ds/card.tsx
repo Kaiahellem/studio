@@ -1,13 +1,12 @@
 import type { ElementType, ReactNode } from "react";
 
-// Cards float: no border, a soft layered shadow (DESIGN.md, Elevation). In dark mode, where
-// shadows barely show, --card-edge adds the one permitted 1px edge.
+// Cards float: no border, a soft layered shadow (DESIGN.md, Elevation).
 export type Level = "card" | "raised" | "overlay";
 
 const shadow: Record<Level, string> = { card: "shadow-card", raised: "shadow-raised", overlay: "shadow-overlay" };
 
 export function cardClass(level: Level = "card", padded = true) {
-  return `rounded-card bg-card ${shadow[level]} ring-1 ring-card-edge ${padded ? "p-4 md:p-5" : ""}`;
+  return `rounded-card bg-card ${shadow[level]} ${padded ? "p-4 md:p-5" : ""}`;
 }
 
 export function Card({

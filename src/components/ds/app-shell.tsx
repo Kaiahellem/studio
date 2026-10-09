@@ -199,7 +199,7 @@ export function AppShell({
         onClick={(e) => {
           if (e.target === drawer.current) setDrawerOpen(false);
         }}
-        className="m-0 h-dvh max-h-dvh w-full max-w-full bg-card p-0 text-ink shadow-overlay ring-1 ring-card-edge backdrop:bg-backdrop md:w-80 md:rounded-r-dialog"
+        className="m-0 h-dvh max-h-dvh w-full max-w-full bg-card p-0 text-ink shadow-overlay backdrop:bg-backdrop md:w-80 md:rounded-r-dialog"
       >
         <div className="relative h-full overflow-y-auto">
           <button
