@@ -125,6 +125,7 @@ export async function loginAsClient(page: Page, email: string) {
   const { code } = await readLoginEmail(email, since);
   await page.getByRole("textbox", { name: "Sekssifret kode" }).fill(code);
   await page.getByRole("button", { name: "Logg inn" }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/logg-inn"));
 }
 
 export async function stepIdByTitle(projectId: string, title: string): Promise<string> {

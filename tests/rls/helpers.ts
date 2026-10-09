@@ -210,3 +210,23 @@ export async function createFixture() {
     includedMinutes: plan.included_minutes_per_month,
   };
 }
+
+// Completes every active step in phases before `position`, as the studio would.
+export async function advanceTo(projectId: string, position: number) {
+  for (let guard = 0; guard < 100; guard++) {
+    const { data } = await service
+      .from("project_steps")
+      .select("id, project_phases!inner(position)")
+      .eq("project_id", projectId)
+      .eq("status", "active")
+      .lt("project_phases.position", position)
+      .limit(1);
+    if (!data?.length) return;
+    must(await service.rpc("complete_step", { p_step_id: data[0].id }), "advance");
+  }
+  throw new Error("advanceTo did not finish");
+}
+
+export async function stepId(projectId: string, title: string): Promise<string> {
+  return must(await service.from("project_steps").select("id").eq("project_id", projectId).eq("title", title).single()).id;
+}
