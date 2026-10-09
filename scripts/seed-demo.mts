@@ -97,7 +97,7 @@ async function main() {
       { client_id: fjordlys, user_id: ola },
       { client_id: fjordlys, user_id: kari },
       { client_id: nordvik, user_id: nina },
-    ]),
+    ], { defaultToNull: false }),
     "members",
   );
 
@@ -135,7 +135,7 @@ async function main() {
       { project_id: project, type: "proposal", title: "Tilbud – ny nettside", external_url: "https://example.com/tilbud.pdf", status: "accepted", document_date: "2026-09-14" },
       { project_id: project, type: "contract", title: "Avtale om utvikling av nettside", external_url: "https://example.com/avtale.pdf", status: "signed", document_date: "2026-09-18" },
       { project_id: project, type: "invoice", title: "Faktura – depositum", external_url: "https://example.com/faktura-1.pdf", status: "paid", document_date: "2026-09-19" },
-    ]),
+    ], { defaultToNull: false }),
     "documents",
   );
 
@@ -185,7 +185,7 @@ async function main() {
       { step_id: textsStep, project_id: project, author_id: ola, body: "Er det greit om vi sender tekstene for tjenestene først, og resten neste uke?" },
       { step_id: textsStep, project_id: project, author_id: adminId, body: "Helt greit, vi starter med tjenestesidene." },
       { step_id: textsStep, project_id: project, author_id: adminId, body: "Intern: purre på Om oss-teksten hvis den ikke er kommet innen fredag.", internal: true },
-    ]),
+    ], { defaultToNull: false }),
     "comments",
   );
 

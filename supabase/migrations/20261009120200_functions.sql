@@ -60,6 +60,8 @@ begin
 end;
 $$;
 revoke execute on function private.advance_project(uuid) from public;
+-- Called from the security-invoker admin RPCs below; `private` is not exposed through the API.
+grant execute on function private.advance_project(uuid) to authenticated, service_role;
 
 create function private.require_admin() returns void
 language plpgsql

@@ -27,7 +27,18 @@ Demo users: `ola@fjordlys.example`, `kari@fjordlys.example` (Fjordlys Rør AS) a
 ```sh
 pnpm check      # lint + type check + unit tests
 pnpm test:rls   # RLS isolation tests (needs `pnpm db:start`)
+pnpm test:e2e   # Playwright login flows, desktop and mobile (needs `pnpm db:start`)
 ```
+
+## Hosted Supabase settings
+
+Mirror `supabase/config.toml` in the dashboard (Authentication):
+
+- **Allow new users to sign up: off.** Only invited users can log in.
+- **Email provider: on.** Turning it off disables login entirely, not just sign-up.
+- **MFA → TOTP: on.**
+- Email template "Magic link": contents of `supabase/templates/magic_link.html`.
+- Custom SMTP via Resend, so login email comes from your own domain.
 
 ## Structure
 

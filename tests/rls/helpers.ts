@@ -84,14 +84,14 @@ export async function createFixture() {
   must(await service.from("admins").insert({ user_id: admin.id }), "admins");
 
   const [clientA, clientB] = must(
-    await service.from("clients").insert([{ name: "Klient A" }, { name: "Klient B" }]).select("id, name").order("name"),
+    await service.from("clients").insert([{ name: "Klient A" }, { name: "Klient B" }], { defaultToNull: false }).select("id, name").order("name"),
     "clients",
   );
   must(
     await service.from("client_private").insert([
       { client_id: clientA.id, internal_notes: "hemmelig A" },
       { client_id: clientB.id, internal_notes: "hemmelig B" },
-    ]),
+    ], { defaultToNull: false }),
     "client_private",
   );
   must(
@@ -99,7 +99,7 @@ export async function createFixture() {
       { client_id: clientA.id, user_id: a1.id },
       { client_id: clientA.id, user_id: a2.id },
       { client_id: clientB.id, user_id: b1.id },
-    ]),
+    ], { defaultToNull: false }),
     "members",
   );
 
@@ -129,7 +129,7 @@ export async function createFixture() {
       { project_id: projectA, step_id: visibleStepA.id, author_id: admin.id, body: "intern A", internal: true },
       { project_id: projectA, step_id: hiddenStepA.id, author_id: admin.id, body: "på skjult steg A" },
       { project_id: projectB, step_id: visibleStepB.id, author_id: b1.id, body: "offentlig B" },
-    ]),
+    ], { defaultToNull: false }),
     "comments",
   );
 
@@ -138,7 +138,7 @@ export async function createFixture() {
       { project_id: projectA, type: "proposal", title: "synlig A", external_url: "https://example.com/a.pdf" },
       { project_id: projectA, type: "other", title: "skjult A", external_url: "https://example.com/a2.pdf", visible_to_client: false },
       { project_id: projectB, type: "proposal", title: "synlig B", external_url: "https://example.com/b.pdf" },
-    ]),
+    ], { defaultToNull: false }),
     "documents",
   );
 
@@ -154,7 +154,7 @@ export async function createFixture() {
       { client_id: clientA.id, project_id: projectA, storage_path: visiblePathA, name: "logo.png", size_bytes: 8, mime_type: "image/png" },
       { client_id: clientA.id, project_id: projectA, storage_path: hiddenPathA, name: "intern.png", size_bytes: 8, mime_type: "image/png", visible_to_client: false },
       { client_id: clientB.id, project_id: projectB, storage_path: pathB, name: "logo.png", size_bytes: 8, mime_type: "image/png" },
-    ]),
+    ], { defaultToNull: false }),
     "files",
   );
 
