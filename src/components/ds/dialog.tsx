@@ -36,15 +36,15 @@ export function Dialog({
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
-      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-md border border-hairline bg-sheet p-0 text-ink shadow-float backdrop:bg-ink/30"
+      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-dialog bg-card p-0 text-ink shadow-overlay backdrop:bg-backdrop"
     >
       <div className="flex flex-col gap-4 p-6">
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-title-m">
             {title}
           </h2>
-          <button type="button" onClick={onClose} className="flex size-11 items-center justify-center rounded-sm text-ink-secondary hover:bg-subtle hover:text-ink md:size-8">
-            <Icon icon={X} label={t.ds.close} />
+          <button type="button" onClick={onClose} aria-label={t.ds.close} className="flex size-11 items-center justify-center rounded-nav text-ink-secondary hover:bg-hover hover:text-ink md:size-9">
+            <Icon icon={X} />
           </button>
         </div>
         <div className="text-body">{children}</div>

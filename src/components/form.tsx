@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, CircleCheck } from "lucide-react";
+import { Check, CircleAlert, CircleCheck } from "lucide-react";
 import {
   useActionState,
   useId,
@@ -20,11 +20,11 @@ import { t } from "@/i18n/nb";
 
 export type FormState = { error?: string; message?: string } | undefined;
 
-// Inputs (DESIGN.md): --sheet background, --control-border, 4px radius, 40px tall (44px on
-// mobile), 16px text; label always visible above; helper text below in Small; errors in brick
-// with an icon, linked through aria-describedby, and the border turns brick.
+// Inputs (DESIGN.md): --card background, --control-border, 10px radius, 44px tall, 16px text;
+// on focus the border turns --focus and the ring appears; label always visible above; helper
+// text below in Small; errors in brick with an icon, linked through aria-describedby.
 const controlClass = (error?: string, extra = "") =>
-  `w-full rounded-sm border bg-sheet px-3 text-[16px] text-ink placeholder:text-ink-secondary disabled:opacity-60 ${
+  `w-full rounded-control border bg-card px-3 text-[16px] text-ink transition-colors duration-[120ms] placeholder:text-ink-secondary focus:border-focus disabled:opacity-60 ${
     error ? "border-brick-fg" : "border-control-border"
   } ${extra}`;
 
@@ -90,7 +90,7 @@ export function Field({ label, hint, error, id, className, type, defaultValue, o
         defaultValue={defaultValue}
         aria-invalid={error ? true : undefined}
         aria-describedby={ids.describedBy}
-        className={controlClass(error, `min-h-11 md:min-h-10 ${className ?? ""}`)}
+        className={controlClass(error, `min-h-11 ${className ?? ""}`)}
         onChange={(e) => {
           if (isDate) setWeek(e.target.value ? formatWeek(e.target.value) : "");
           onChange?.(e);
@@ -143,7 +143,7 @@ export function Select({ label, hint, error, id, options, className, ...select }
         id={ids.inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={ids.describedBy}
-        className={controlClass(error, `min-h-11 md:min-h-10 ${className ?? ""}`)}
+        className={controlClass(error, `min-h-11 ${className ?? ""}`)}
         {...select}
       >
         {options.map((o) => (
@@ -156,13 +156,22 @@ export function Select({ label, hint, error, id, options, className, ...select }
   );
 }
 
-// The whole row is the click target (44px on mobile).
+// 18px box, 4px radius, --control-border; checked fills with --primary-bg. The whole row is the
+// click target (44px on mobile).
 export function Checkbox({ label, id, ...input }: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   const autoId = useId();
   const inputId = id ?? autoId;
   return (
     <label htmlFor={inputId} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-9">
-      <input id={inputId} type="checkbox" className="size-4 shrink-0 cursor-pointer accent-primary-bg" {...input} />
+      <span className="relative flex size-[18px] shrink-0">
+        <input
+          id={inputId}
+          type="checkbox"
+          className="peer size-[18px] cursor-pointer appearance-none rounded-check border border-control-border bg-card checked:border-primary-bg checked:bg-primary-bg"
+          {...input}
+        />
+        <Check size={14} strokeWidth={2.25} aria-hidden="true" className="pointer-events-none absolute left-0.5 top-0.5 hidden text-primary-text peer-checked:block" />
+      </span>
       <span className="text-body">{label}</span>
     </label>
   );
@@ -223,13 +232,13 @@ export function FormMessage({ error, message }: { error?: string; message?: stri
   return (
     <div aria-live="polite" role="status">
       {error && (
-        <p role="alert" className="flex items-start gap-2 rounded-sm border border-brick-fg bg-brick-bg px-3 py-2 text-body text-brick-fg">
+        <p role="alert" className="flex items-start gap-2 rounded-inset bg-brick-bg px-4 py-3 text-body text-brick-fg">
           <Icon icon={CircleAlert} className="mt-[5px]" />
           <span>{error}</span>
         </p>
       )}
       {message && !error && (
-        <p className="flex items-start gap-2 rounded-sm border border-sage-fg bg-sage-bg px-3 py-2 text-body text-sage-fg">
+        <p className="flex items-start gap-2 rounded-inset bg-sage-bg px-4 py-3 text-body text-sage-fg">
           <Icon icon={CircleCheck} className="mt-[5px]" />
           <span>{message}</span>
         </p>

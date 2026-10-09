@@ -80,8 +80,8 @@ export function UploadPanel({
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         // The input is visually hidden, so the whole drop zone shows keyboard focus.
-        className={`flex flex-col items-center justify-center gap-3 rounded-sm border border-dashed px-4 py-8 text-center transition-colors duration-[120ms] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus ${
-          dragging ? "border-focus bg-slate-bg" : "border-control-border"
+        className={`flex flex-col items-center justify-center gap-3 rounded-inset border-[1.5px] border-dashed px-4 py-8 text-center transition-colors duration-[120ms] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus ${
+          dragging ? "border-focus bg-slate-bg" : "border-control-border bg-inset"
         }`}
       >
         <p className="text-body">{u.dropLine}</p>
