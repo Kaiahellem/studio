@@ -18,7 +18,7 @@ export function Breadcrumbs({ trail, current }: { trail: Crumb[]; current: strin
               <Link href={c.href} className="text-ink-secondary underline-offset-3 hover:text-ink hover:underline">
                 {c.label}
               </Link>
-              <span aria-hidden="true" className="text-hairline">
+              <span aria-hidden="true" className="text-ink-disabled">
                 /
               </span>
             </li>

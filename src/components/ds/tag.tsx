@@ -13,7 +13,7 @@ const tones: Record<Tone, string> = {
 
 export function Tag({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
   return (
-    <span className={`inline-flex min-h-6 items-center rounded-sm px-2 py-0.5 text-label md:min-h-5 md:py-0 ${tones[tone]}`}>
+    <span className={`inline-flex min-h-[26px] shrink-0 items-center rounded-tag px-2 py-0.5 text-label md:min-h-[22px] ${tones[tone]}`}>
       {children}
     </span>
   );

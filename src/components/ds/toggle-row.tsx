@@ -20,13 +20,13 @@ export function ToggleRow({
   const panelId = useId();
   return (
     <div>
-      <div className="flex min-h-12 items-center gap-2 md:min-h-10">
+      <div className="flex items-center gap-2 pr-2">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((o) => !o)}
-          className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-sm text-left hover:bg-subtle md:min-h-9"
+          className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-nav px-2 text-left transition-colors duration-[120ms] hover:bg-hover"
         >
           <ChevronRight
             size={12}
@@ -38,7 +38,7 @@ export function ToggleRow({
         </button>
         {trailing}
       </div>
-      <div id={panelId} hidden={!open} className="pl-5">
+      <div id={panelId} hidden={!open}>
         {children}
       </div>
     </div>

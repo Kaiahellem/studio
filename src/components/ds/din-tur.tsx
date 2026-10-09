@@ -1,45 +1,46 @@
-import { ArrowRight, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 import { t } from "@/i18n/nb";
 import { ButtonLink } from "./button";
-import { Icon } from "./icon";
+import { cardClass } from "./card";
+import { Tag } from "./tag";
 
-// The most important element in Portal (DESIGN.md, "Din tur" callout). Slate when something
-// waits on the client, with one primary button; neutral with no button when it is my turn.
-// Never more than one at the top of a page.
-export function DinTur({
+// The most important element in Portal (DESIGN.md, "Din tur" card). Raised, with a slate
+// "Din tur" tag and one primary button when something waits on the client; at Card level with
+// a neutral tag and no button when it's my turn. Only one per page, first after the header.
+export function DinTurCard({
   title,
   children,
+  others,
   action,
   waiting = true,
+  tag,
 }: {
   title: string;
-  children: ReactNode;
+  children?: ReactNode;
+  others?: ReactNode;
   action?: { label: string; href: string; ariaLabel?: string };
   waiting?: boolean;
+  tag: string;
 }) {
   return (
-    <section
-      aria-labelledby="din-tur-heading"
-      className={`flex gap-3 rounded-sm border p-4 ${waiting ? "border-slate-fg bg-slate-bg" : "border-hairline bg-subtle"}`}
-    >
-      <Icon icon={waiting ? ArrowRight : Clock} className={`mt-1 ${waiting ? "text-slate-fg" : "text-ink-secondary"}`} />
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <h2 id="din-tur-heading" className="text-title-s">
-          {/* Screen readers hear that this is the client's turn, not just the step name. */}
-          {waiting && <span className="sr-only">{t.client.yourTurn.heading}: </span>}
-          {title}
-        </h2>
-        <div className="text-body">{children}</div>
-        {waiting && action && (
-          <div className="mt-2">
-            <ButtonLink href={action.href} variant="primary" aria-label={action.ariaLabel} className="w-full sm:w-auto">
-              {action.label}
-            </ButtonLink>
-          </div>
-        )}
+    <section aria-labelledby="din-tur-heading" className={`flex flex-col gap-3 ${cardClass(waiting ? "raised" : "card")}`}>
+      <div>
+        <Tag tone={waiting ? "slate" : "neutral"}>{tag}</Tag>
       </div>
+      <h2 id="din-tur-heading" className="text-title-m">
+        {/* Screen readers hear that this is the client's turn, not just the step name. */}
+        {waiting && <span className="sr-only">{t.client.yourTurn.heading}: </span>}
+        {title}
+      </h2>
+      {children && <div className="flex flex-col gap-2 text-body">{children}</div>}
+      {others && <div className="text-small text-ink-secondary">{others}</div>}
+      {waiting && action && (
+        <div className="mt-2">
+          <ButtonLink href={action.href} variant="primary" aria-label={action.ariaLabel} className="w-full sm:w-auto">
+            {action.label}
+          </ButtonLink>
+        </div>
+      )}
     </section>
   );
 }
-

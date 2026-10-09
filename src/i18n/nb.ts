@@ -114,7 +114,8 @@ export const nb = {
       phaseOf: (name: string, n: number, total: number) => `${name} (${n} av ${total})`,
       dateWithWeek: (date: string, week: string) => `${date} (${week})`,
       due: (date: string, week: string) => `Frist ${date}, ${week}`,
-      state: { yourTurn: "Din tur", ourTurn: "Vi jobber", done: "Ferdig", paused: "På pause" },
+      state: { yourTurn: "Din tur", ourTurn: "Vi jobber med det", done: "Ferdig", paused: "På pause" },
+      propertiesLabel: "Om prosjektet",
     },
     greeting: (name: string | null) => (name ? `Hei, ${name}` : "Hei"),
     yourTurn: {
