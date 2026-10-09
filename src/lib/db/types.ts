@@ -685,6 +685,9 @@ isOneToOne: false
 "complete_step":
 { Args: { "p_skip"?: boolean,"p_step_id": string }; Returns: undefined
                            },
+"create_handover_page":
+{ Args: { "p_project_id": string }; Returns: string
+                           },
 "create_project_from_template":
 { Args: { "p_client_id": string,"p_name": string,"p_start_date"?: string,"p_target_launch_date"?: string,"p_template_id": string }; Returns: string
                            },
@@ -708,6 +711,9 @@ isOneToOne: false
                            },
 "open_approval_round":
 { Args: { "p_link"?: string,"p_note"?: string,"p_step_id": string }; Returns: number
+                           },
+"regenerate_handover_token":
+{ Args: { "p_page_id": string }; Returns: undefined
                            },
 "register_upload":
 { Args: { "p_mime_type": string,"p_name": string,"p_size_bytes": number,"p_step_id": string,"p_storage_path": string }; Returns: string
