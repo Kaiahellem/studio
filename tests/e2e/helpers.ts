@@ -100,3 +100,35 @@ export async function loginAsAdmin(page: Page, admin: { email: string; secret: s
   await page.getByRole("button", { name: "Bekreft" }).click();
   await expect(page.getByRole("heading", { name: "Oversikt" })).toBeVisible();
 }
+
+// Completes every step in phases before `position`, as the studio would.
+export async function advanceToPhase(projectId: string, position: number) {
+  for (let guard = 0; guard < 100; guard++) {
+    const { data, error } = await service
+      .from("project_steps")
+      .select("id, project_phases!inner(position)")
+      .eq("project_id", projectId)
+      .eq("status", "active")
+      .lt("project_phases.position", position)
+      .limit(1);
+    if (error) throw error;
+    if (!data.length) return;
+    const done = await service.rpc("complete_step", { p_step_id: data[0].id });
+    if (done.error) throw done.error;
+  }
+  throw new Error("advanceToPhase did not finish");
+}
+
+export async function loginAsClient(page: Page, email: string) {
+  const since = new Date();
+  await requestLogin(page, email);
+  const { code } = await readLoginEmail(email, since);
+  await page.getByRole("textbox", { name: "Sekssifret kode" }).fill(code);
+  await page.getByRole("button", { name: "Logg inn" }).click();
+}
+
+export async function stepIdByTitle(projectId: string, title: string): Promise<string> {
+  const { data, error } = await service.from("project_steps").select("id").eq("project_id", projectId).eq("title", title).single();
+  if (error) throw error;
+  return data.id;
+}

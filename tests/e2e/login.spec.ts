@@ -11,8 +11,7 @@ test.describe("client login", () => {
     await page.getByLabel("Sekssifret kode").fill(code);
     await page.getByRole("button", { name: "Logg inn" }).click();
 
-    await expect(page.getByRole("heading", { name: "Prosjektene dine" })).toBeVisible();
-    await expect(page.getByText("Nettside for Kode AS")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Nettside for Kode AS" })).toBeVisible();
   });
 
   test("with the link from the email, which only logs in after the button is pressed", async ({ page, request }) => {
@@ -26,8 +25,7 @@ test.describe("client login", () => {
     await page.context().clearCookies();
     await page.goto(link);
     await page.getByRole("button", { name: "Logg inn" }).click();
-    await expect(page.getByRole("heading", { name: "Prosjektene dine" })).toBeVisible();
-    await expect(page.getByText("Nettside for Lenke AS")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Nettside for Lenke AS" })).toBeVisible();
   });
 
   test("a wrong code shows an error tied to the field", async ({ page }) => {
@@ -58,10 +56,10 @@ test.describe("client login", () => {
     const { code } = await readLoginEmail(user.email);
     await page.getByLabel("Sekssifret kode").fill(code);
     await page.getByRole("button", { name: "Logg inn" }).click();
-    await expect(page.getByRole("heading", { name: "Prosjektene dine" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Nettside for Nysgjerrig AS" })).toBeVisible();
 
     await page.goto("/studio");
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(new RegExp(`/p/${user.projectId}$`));
   });
 });
 
