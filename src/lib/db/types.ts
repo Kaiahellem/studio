@@ -679,6 +679,9 @@ isOneToOne: false
               "agreement_id": string,"client_id": string,"client_name": string,"included_minutes": number,"used_minutes": number
             }[]
                            },
+"complete_client_step":
+{ Args: { "p_step_id": string }; Returns: undefined
+                           },
 "complete_step":
 { Args: { "p_skip"?: boolean,"p_step_id": string }; Returns: undefined
                            },
@@ -703,8 +706,23 @@ isOneToOne: false
 "move_step":
 { Args: { "p_direction": number,"p_step_id": string }; Returns: undefined
                            },
+"open_approval_round":
+{ Args: { "p_link"?: string,"p_note"?: string,"p_step_id": string }; Returns: number
+                           },
+"register_upload":
+{ Args: { "p_mime_type": string,"p_name": string,"p_size_bytes": number,"p_step_id": string,"p_storage_path": string }; Returns: string
+                           },
+"remove_own_upload":
+{ Args: { "p_file_id": string }; Returns: string
+                           },
 "reopen_step":
 { Args: { "p_step_id": string }; Returns: undefined
+                           },
+"submit_approval":
+{ Args: { "p_comment"?: string,"p_decision": Database["public"]['Enums']["approval_decision"],"p_step_id": string }; Returns: Json
+                           },
+"submit_form":
+{ Args: { "p_answers": Json,"p_step_id": string }; Returns: undefined
                            },
 "sync_project":
 { Args: { "p_project_id": string }; Returns: undefined
