@@ -725,6 +725,11 @@ isOneToOne: false
 "open_approval_round":
 { Args: { "p_link"?: string,"p_note"?: string,"p_step_id": string }; Returns: number
                            },
+"purge_client":
+{ Args: { "p_client_id": string }; Returns: {
+              "member_ids": (string)[],"storage_paths": (string)[]
+            }[]
+                           },
 "regenerate_handover_token":
 { Args: { "p_page_id": string }; Returns: undefined
                            },
@@ -748,6 +753,9 @@ isOneToOne: false
                            },
 "sync_project":
 { Args: { "p_project_id": string }; Returns: undefined
+                           },
+"update_app_settings":
+{ Args: { "p_allowed_mime_types": (string)[],"p_max_upload_bytes": number,"p_reminder_after_days": number,"p_reminder_interval_days": number }; Returns: undefined
                            }
           }
           Enums: {
