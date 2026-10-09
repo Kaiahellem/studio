@@ -663,7 +663,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "add_phase":
+            "add_maintenance_log":
+{ Args: { "p_description"?: string,"p_entry_date": string,"p_minutes"?: number,"p_project_id": string,"p_title": string,"p_visible_to_client"?: boolean }; Returns: string
+                           },
+"add_phase":
 { Args: { "p_description"?: string,"p_name": string,"p_project_id": string,"p_step_mode"?: Database["public"]['Enums']["step_mode"] }; Returns: string
                            },
 "add_step":
@@ -677,6 +680,11 @@ isOneToOne: false
 "agreements_usage_overview":
 { Args: { "p_month"?: string }; Returns: {
               "agreement_id": string,"client_id": string,"client_name": string,"included_minutes": number,"used_minutes": number
+            }[]
+                           },
+"change_request_minutes":
+{ Args: { "p_project_id": string }; Returns: {
+              "change_request_id": string,"minutes": number
             }[]
                            },
 "complete_client_step":
@@ -703,6 +711,11 @@ isOneToOne: false
 "is_admin_account":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"maintenance_log_minutes":
+{ Args: { "p_project_id": string }; Returns: {
+              "maintenance_log_id": string,"minutes": number
+            }[]
+                           },
 "move_phase":
 { Args: { "p_direction": number,"p_phase_id": string }; Returns: undefined
                            },
@@ -714,6 +727,9 @@ isOneToOne: false
                            },
 "regenerate_handover_token":
 { Args: { "p_page_id": string }; Returns: undefined
+                           },
+"register_request_upload":
+{ Args: { "p_change_request_id": string,"p_mime_type": string,"p_name": string,"p_size_bytes": number,"p_storage_path": string }; Returns: string
                            },
 "register_upload":
 { Args: { "p_mime_type": string,"p_name": string,"p_size_bytes": number,"p_step_id": string,"p_storage_path": string }; Returns: string
