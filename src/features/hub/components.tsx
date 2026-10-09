@@ -85,7 +85,18 @@ const marker = {
   pending: "bg-paper border-field-border text-muted",
 } as const;
 
-export function Timeline({ projectId, phases }: { projectId: string; phases: HubPhase[] }) {
+export function Timeline({ projectId, phases, collapsed = false }: { projectId: string; phases: HubPhase[]; collapsed?: boolean }) {
+  // Once the project is finished, the history is still there but out of the way.
+  if (collapsed) {
+    return (
+      <details>
+        <summary className="cursor-pointer underline underline-offset-4 hover:no-underline">{c.timeline.history}</summary>
+        <div className="mt-6">
+          <Timeline projectId={projectId} phases={phases} />
+        </div>
+      </details>
+    );
+  }
   return (
     <section aria-labelledby="timeline-heading">
       <h2 id="timeline-heading" className="mb-6 font-serif text-2xl">

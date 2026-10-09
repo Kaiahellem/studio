@@ -6,7 +6,7 @@ import { withDownloadUrls } from "@/features/hub/queries";
 import { t } from "@/i18n/nb";
 
 // Names for any users, as seen by the admin. Users without a profile name show as "Ukjent".
-async function adminNames(ids: (string | null | undefined)[]) {
+export async function adminNames(ids: (string | null | undefined)[]) {
   const supabase = await createClient();
   const unique = [...new Set(ids.filter((id): id is string => Boolean(id)))];
   const [profiles, admins] = await Promise.all([
