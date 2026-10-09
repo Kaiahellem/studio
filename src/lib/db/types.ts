@@ -663,9 +663,20 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "agreement_usage":
+            "add_phase":
+{ Args: { "p_description"?: string,"p_name": string,"p_project_id": string,"p_step_mode"?: Database["public"]['Enums']["step_mode"] }; Returns: string
+                           },
+"add_step":
+{ Args: { "p_description"?: string,"p_due_date"?: string,"p_form_definition_id"?: string,"p_max_revision_rounds"?: number,"p_owner": Database["public"]['Enums']["step_owner"],"p_phase_id": string,"p_title": string,"p_type": Database["public"]['Enums']["step_type"],"p_visible_to_client"?: boolean }; Returns: string
+                           },
+"agreement_usage":
 { Args: { "p_agreement_id": string,"p_month"?: string }; Returns: {
               "included_minutes": number,"month": string,"used_minutes": number
+            }[]
+                           },
+"agreements_usage_overview":
+{ Args: { "p_month"?: string }; Returns: {
+              "agreement_id": string,"client_id": string,"client_name": string,"included_minutes": number,"used_minutes": number
             }[]
                            },
 "complete_step":
@@ -674,11 +685,29 @@ isOneToOne: false
 "create_project_from_template":
 { Args: { "p_client_id": string,"p_name": string,"p_start_date"?: string,"p_target_launch_date"?: string,"p_template_id": string }; Returns: string
                            },
+"delete_phase":
+{ Args: { "p_phase_id": string }; Returns: undefined
+                           },
+"delete_step":
+{ Args: { "p_step_id": string }; Returns: undefined
+                           },
 "get_public_handover":
 { Args: { "p_token": string }; Returns: Json
                            },
 "is_admin_account":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"move_phase":
+{ Args: { "p_direction": number,"p_phase_id": string }; Returns: undefined
+                           },
+"move_step":
+{ Args: { "p_direction": number,"p_step_id": string }; Returns: undefined
+                           },
+"reopen_step":
+{ Args: { "p_step_id": string }; Returns: undefined
+                           },
+"sync_project":
+{ Args: { "p_project_id": string }; Returns: undefined
                            }
           }
           Enums: {
