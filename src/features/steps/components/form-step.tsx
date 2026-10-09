@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useId, useRef } from "react";
-import { Field, FormMessage, Select, SubmitButton, TextArea } from "@/components/form";
+import { cardClass } from "@/components/ds/card";
+import { Checkbox, Field, FieldError, FormMessage, Select, SubmitButton, TextArea } from "@/components/form";
 import { saveFormAction } from "@/features/steps/actions";
 import { optionsOf, type Answers, type FormDefinition, type FormField } from "@/features/forms/schema";
 import { t } from "@/i18n/nb";
@@ -9,27 +10,19 @@ import { t } from "@/i18n/nb";
 function MultiSelect({ field, value, error }: { field: FormField; value: string[]; error?: string }) {
   const id = useId();
   return (
-    <fieldset aria-describedby={[field.help && `${id}-help`, error && `${id}-error`].filter(Boolean).join(" ") || undefined}>
-      <legend className="mb-2 text-sm font-medium">{field.label}</legend>
+    <fieldset aria-describedby={[field.help && `${id}-help`, error && `${id}-error`].filter(Boolean).join(" ") || undefined} className="flex flex-col gap-1.5">
+      <legend className="mb-1 text-label">{field.label}</legend>
+      <div className="flex flex-col">
+        {optionsOf(field).map((o) => (
+          <Checkbox key={o.value} label={o.label} name={field.key} value={o.value} defaultChecked={value.includes(o.value)} />
+        ))}
+      </div>
       {field.help && (
-        <p id={`${id}-help`} className="mb-2 text-sm text-muted">
+        <p id={`${id}-help`} className="text-small text-ink-secondary">
           {field.help}
         </p>
       )}
-      <div className="flex flex-col gap-2">
-        {optionsOf(field).map((o) => (
-          <label key={o.value} className="flex items-center gap-3">
-            <input type="checkbox" name={field.key} value={o.value} defaultChecked={value.includes(o.value)} className="size-5 accent-accent" />
-            {o.label}
-          </label>
-        ))}
-      </div>
-      {error && (
-        <p id={`${id}-error`} className="mt-2 text-sm font-medium text-danger">
-          <span aria-hidden="true">⚠ </span>
-          {error}
-        </p>
-      )}
+      {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
     </fieldset>
   );
 }
@@ -53,12 +46,7 @@ function Question({ field, value, error }: { field: FormField; value: Answers[st
     case "multiselect":
       return <MultiSelect field={field} value={Array.isArray(value) ? value : []} error={error} />;
     case "boolean":
-      return (
-        <label className="flex items-center gap-3">
-          <input type="checkbox" name={field.key} defaultChecked={value === true} className="size-5 accent-accent" />
-          <span className="text-sm font-medium">{field.label}</span>
-        </label>
-      );
+      return <Checkbox label={field.label} name={field.key} defaultChecked={value === true} />;
     default:
       return <Field {...common} defaultValue={text} />;
   }
@@ -79,19 +67,23 @@ export function FormStep({ stepId, definition, initial }: { stepId: string; defi
 
   return (
     // The key remounts the fields with the server's copy of the answers after each save.
-    <form ref={formRef} key={JSON.stringify(answers)} action={action} className="flex flex-col gap-10" noValidate>
+    <form ref={formRef} key={JSON.stringify(answers)} action={action} className="flex flex-col gap-4" noValidate>
+      {/* One card per section of the questionnaire. */}
       {definition.sections.map((section) => (
-        <fieldset key={section.title} className="flex flex-col gap-6">
-          <legend className="mb-2 font-serif text-2xl">{section.title}</legend>
-          {section.description && <p className="-mt-2 text-muted">{section.description}</p>}
+        <fieldset key={section.title} className={`flex flex-col gap-5 ${cardClass("card")}`}>
+          {/* A heading inside the legend: grouped for forms mode, and reachable by heading navigation. */}
+          <legend className="float-left w-full">
+            <h2 className="text-title-m">{section.title}</h2>
+          </legend>
+          {section.description && <p className="-mt-3 text-ink-secondary">{section.description}</p>}
           {section.fields.map((field) => (
             <Question key={field.key} field={field} value={answers[field.key]} error={errors[field.key]} />
           ))}
         </fieldset>
       ))}
 
-      {/* Sticky on larger screens only; on a phone it would cover the questions. */}
-      <div className="flex flex-col gap-4 border-t border-line bg-paper/95 py-4 sm:sticky sm:bottom-0 sm:backdrop-blur">
+      {/* Raised and sticky on larger screens; on a phone it would cover the questions. */}
+      <div className={`mt-2 flex flex-col gap-4 sm:sticky sm:bottom-4 ${cardClass("raised")}`}>
         <FormMessage error={state?.error} message={state?.message} />
         <div className="flex flex-col gap-3 sm:flex-row">
           <SubmitButton full name="intent" value="submit" pendingText={t.forms.submitting}>

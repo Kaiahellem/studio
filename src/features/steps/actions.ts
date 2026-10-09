@@ -34,36 +34,31 @@ function fail(error: { message: string } | null): FormState | undefined {
 // Approvals
 // ---------------------------------------------------------------------------
 
-export async function approveAction(stepId: string): Promise<FormState> {
+// One form for both decisions (DESIGN.md, Review round): a comment field, then "Godkjenn" and
+// "Be om endringer". The comment is optional when approving and required when asking for changes.
+export async function decideAction(stepId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   await requireUser();
-  const supabase = await createClient();
   const id = uuid.parse(stepId);
-  const { error } = await supabase.rpc("submit_approval", { p_step_id: id, p_decision: "approved" });
-  if (error) return fail(error);
-  schedule(async () => {
-    await notifyApproval(id, "approved", false);
-    await notifyClientTurnsForStep(id);
-  });
-  refresh();
-  return { message: c.approval.approvedThanks };
-}
+  const decision = z.enum(["approved", "changes_requested"]).safeParse(formData.get("decision"));
+  if (!decision.success) return { error: c.step.notAllowed };
+  const comment = z.string().trim().max(10_000).catch("").parse(formData.get("comment"));
+  if (decision.data === "changes_requested" && !comment) return { error: c.approval.changesRequired };
 
-export async function requestChangesAction(stepId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireUser();
-  const comment = z.string().trim().min(1).max(10_000).safeParse(formData.get("comment"));
-  if (!comment.success) return { error: c.approval.changesRequired };
   const supabase = await createClient();
-  const id = uuid.parse(stepId);
   const { data, error } = await supabase.rpc("submit_approval", {
     p_step_id: id,
-    p_decision: "changes_requested",
-    p_comment: comment.data,
+    p_decision: decision.data,
+    p_comment: comment || undefined,
   });
   if (error) return fail(error);
+
   const usedUp = Boolean((data as { rounds_used_up?: boolean } | null)?.rounds_used_up);
-  schedule(() => notifyApproval(id, "changes_requested", usedUp));
+  schedule(async () => {
+    await notifyApproval(id, decision.data, usedUp);
+    if (decision.data === "approved") await notifyClientTurnsForStep(id);
+  });
   refresh();
-  return { message: c.approval.changesThanks };
+  return { message: decision.data === "approved" ? c.approval.approvedThanks : c.approval.changesThanks };
 }
 
 // ---------------------------------------------------------------------------
