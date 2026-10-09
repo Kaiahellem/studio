@@ -100,7 +100,7 @@ test("launch checklist, handover page, public link and a finished project", asyn
   await expect(dinTur).toBeVisible();
   await dinTur.getByRole("link", { name: /Bekreft at du har fått tilgangene$/ }).click();
   await client.getByRole("button", { name: "Marker som gjort" }).click();
-  await expect(client.getByText(/Fullført \d+\./)).toBeVisible();
+  await expect(client.getByRole("definition").filter({ hasText: /^Ferdig$/ })).toBeVisible();
 
   await studio.goto(`${projectUrl}/steps/${(await service.from("project_steps").select("id").eq("project_id", user.projectId).eq("title", "Bekreft vedlikeholdsavtalen").single()).data!.id}`);
   await studio.getByRole("textbox", { name: "Melding til kunden" }).fill("Avtalen ligger under Dokumenter.");

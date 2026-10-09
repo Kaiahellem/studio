@@ -46,7 +46,8 @@ test("client pages", async ({ page }) => {
   await page.goto(`/p/${user.projectId}/steg/${structure}`);
   await audit(page, "godkjenning");
   await page.getByRole("button", { name: "Be om endringer" }).click();
-  await audit(page, "godkjenning, be om endringer");
+  await expect(page.getByText("Skriv hva som bør endres", { exact: false })).toBeVisible();
+  await audit(page, "godkjenning, feil uten kommentar");
 
   await page.goto(`/p/${user.projectId}/steg/${await stepIdByTitle(user.projectId, "Last opp logo")}`);
   await audit(page, "opplasting");

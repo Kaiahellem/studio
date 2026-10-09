@@ -80,7 +80,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
 
   await clientOpensDinTur("Velg vedlikeholdsavtale (valgfritt)");
   await client.getByRole("button", { name: "Marker som gjort" }).click();
-  await expect(client.getByText(/Fullført \d+\./)).toBeVisible();
+  await expect(client.getByRole("definition").filter({ hasText: /^Ferdig$/ })).toBeVisible();
   await studioCompletes("Faktura for depositum");
 
   // --- Phase 2: Oppstart -----------------------------------------------------
@@ -100,7 +100,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   await client.getByRole("textbox", { name: /Hva skal nettsiden oppnå/ }).fill("Flere forespørsler på baderom.");
   await client.getByRole("group", { name: /Hvordan skal kundene ta kontakt/ }).getByRole("checkbox", { name: "Telefon" }).check();
   await client.getByRole("button", { name: "Send inn" }).click();
-  await expect(client.getByRole("heading", { name: /Sendt inn/ })).toBeVisible();
+  await expect(client.getByRole("heading", { name: "Svarene dine" })).toBeVisible();
 
   await studio.goto(await stepUrl("Fyll ut oppstartsskjemaet"));
   await expect(studio.getByText("Fast pris og ryddig arbeid.")).toBeVisible();
@@ -113,7 +113,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   await client.getByRole("button", { name: "Fjern logo-hvit.png" }).click();
   await expect(client.getByRole("link", { name: "logo-hvit.png" })).toHaveCount(0);
   await client.getByRole("button", { name: "Jeg har lastet opp alt" }).click();
-  await expect(client.getByText(/Fullført \d+\./)).toBeVisible();
+  await expect(client.getByRole("definition").filter({ hasText: /^Ferdig$/ })).toBeVisible();
 
   for (const [title, file] of [
     ["Last opp tekster", pdf("forside.pdf")],
@@ -122,7 +122,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
     await clientOpensDinTur(title);
     await clientUploads(client, [file]);
     await client.getByRole("button", { name: "Jeg har lastet opp alt" }).click();
-    await expect(client.getByText(/Fullført \d+\./)).toBeVisible();
+    await expect(client.getByRole("definition").filter({ hasText: /^Ferdig$/ })).toBeVisible();
   }
 
   await clientOpensDinTur("Andre filer (valgfritt)");
@@ -151,7 +151,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   await client.getByRole("textbox", { name: /Hvor er domenet registrert/ }).fill("Domeneshop");
   await client.getByRole("textbox", { name: /Hvor ligger e-posten/ }).fill("Microsoft 365");
   await client.getByRole("button", { name: "Send inn" }).click();
-  await expect(client.getByRole("heading", { name: /Sendt inn/ })).toBeVisible();
+  await expect(client.getByRole("heading", { name: "Svarene dine" })).toBeVisible();
 
   await client.goto(`/p/${user.projectId}/filer`);
   for (const name of ["logo.png", "forside.pdf", "team.png"]) await expect(client.getByRole("link", { name })).toBeVisible();
@@ -159,9 +159,11 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   // --- Phase 4: Struktur, with one round of changes ----------------------------
   await studioOpensRound("Godkjenn struktur", "Sidekart og skisser er klare.");
   await clientOpensDinTur("Godkjenn struktur");
-  await expect(client.getByRole("heading", { name: "Runde 1 av 2" })).toBeVisible();
+  await expect(client.getByRole("region", { name: "Struktur" }).getByText("Runde 1 av 2", { exact: true })).toBeVisible();
+  // Asking for changes needs a comment.
   await client.getByRole("button", { name: "Be om endringer" }).click();
-  await client.getByRole("textbox", { name: "Hva bør endres?" }).fill("Flytt kontakt opp i menyen.");
+  await expect(client.getByText("Skriv hva som bør endres før du ber om endringer.")).toBeVisible();
+  await client.getByRole("textbox", { name: "Kommentar", exact: true }).fill("Flytt kontakt opp i menyen.");
   await client.getByRole("button", { name: "Be om endringer" }).click();
   await expect(client.getByText("Takk! Vi går gjennom endringene og sier fra når neste versjon er klar.")).toBeVisible();
 
@@ -170,7 +172,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
 
   await studioOpensRound("Godkjenn struktur", "Kontakt er flyttet opp.");
   await clientOpensDinTur("Godkjenn struktur");
-  await expect(client.getByRole("heading", { name: "Runde 2 av 2" })).toBeVisible();
+  await expect(client.getByRole("region", { name: "Struktur" }).getByText("Runde 2 av 2", { exact: true })).toBeVisible();
   await expect(client.getByText(/Dette er den siste inkluderte runden/)).toBeVisible();
   await clientApproves();
 

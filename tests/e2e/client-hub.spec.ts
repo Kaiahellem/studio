@@ -63,9 +63,9 @@ test("an open approval round becomes the client's turn", async ({ page }) => {
   const card = page.getByRole("region", { name: /^Din tur/ });
   await expect(page.getByRole("region", { name: "Din tur: Godkjenn struktur" })).toBeVisible();
   await card.getByRole("link", { name: /Se og godkjenn/ }).click();
-  await expect(page.getByRole("heading", { name: "Runde 1 av 2" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Struktur" }).getByText("Runde 1 av 2", { exact: true })).toBeVisible();
   await expect(page.getByText("Sidekart og skisser er klare.")).toBeVisible();
 
-  await page.getByRole("link", { name: "Til oversikten" }).click();
+  await page.getByRole("link", { name: "Oversikt", exact: true }).filter({ visible: true }).first().click();
   await expect(page.getByRole("link", { name: /Åpne forhåndsvisningen/ })).toHaveAttribute("href", "https://godkjenn-staging.example.com");
 });
