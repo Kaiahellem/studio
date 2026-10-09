@@ -1,59 +1,228 @@
 @import "tailwindcss";
 
 /*
-  Design tokens. Calm and editorial: warm paper, near-black ink, one restrained accent.
-  Contrast against --paper (WCAG 2.1 AA): ink 16:1, muted 6.3:1, accent 8.9:1, danger 6.9:1,
-  success 7.4:1; white on accent 9.7:1. --line is decorative only (1.3:1); form controls use
-  --field-border (3.6:1) to meet 1.4.11 non-text contrast.
+  Design tokens: Quiet Studio (DESIGN.md). Every value comes from DESIGN.md, where each
+  text/background pair is checked against WCAG 2.1 AA. Never use raw hex values in components;
+  use these tokens through the Tailwind theme below.
 */
 :root {
-  --paper: #f7f5f0;
-  --surface: #ffffff;
-  --ink: #1b1a17;
-  --muted: #5d5a53;
-  --line: #dcd8cf;
-  --field-border: #858076;
-  --accent: #2c4a3e;
-  --accent-ink: #ffffff;
-  --danger: #9b2c1f;
-  --danger-surface: #fbeeeb;
-  --success: #2c5a34;
-  --success-surface: #ecf4ec;
-  --focus: #1b1a17;
+  color-scheme: light;
+
+  /* Surfaces, text and lines */
+  --canvas: #faf9f6;
+  --sheet: #ffffff;
+  --subtle: #f3f4f6;
+  --active: #e9eaec;
+  --ink: #1e232a;
+  --ink-secondary: #5f6571;
+  --ink-disabled: #8c9099;
+  --hairline: #e5e7eb; /* decoration only */
+  --control-border: #80858e; /* anything the user must see to operate it (3:1) */
+  --focus: #4a6572;
+
+  /* Buttons */
+  --primary-bg: #1e232a;
+  --primary-bg-hover: #374151;
+  --primary-text: #ffffff;
+
+  /* Status: always text in a tag, never colour alone */
+  --neutral-fg: #5f6571;
+  --neutral-bg: #f3f4f6;
+  --slate-fg: #4a6572;
+  --slate-bg: #eef3f6;
+  --sage-fg: #5b6b5c;
+  --sage-bg: #edf3ee;
+  --amber-fg: #8a5c2c;
+  --amber-bg: #faf4ec;
+  --brick-fg: #9f2f2d;
+  --brick-bg: #fdebec;
+
+  --shadow-float: 0 4px 12px rgba(30, 35, 42, 0.06), 0 1px 2px rgba(30, 35, 42, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --canvas: #18191b;
+    --sheet: #202124;
+    --subtle: #2a2b2e;
+    --active: #323337;
+    --ink: #e8e6e1;
+    --ink-secondary: #a4a7ae;
+    --ink-disabled: #7a7e86;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --control-border: #7a7e86;
+    --focus: #afc6d2;
+
+    --primary-bg: #e8e6e1;
+    --primary-bg-hover: #ffffff;
+    --primary-text: #1e232a;
+
+    --neutral-fg: #c9c9c6;
+    --neutral-bg: #2e2f33;
+    --slate-fg: #afc6d2;
+    --slate-bg: #23323b;
+    --sage-fg: #b7cab8;
+    --sage-bg: #263027;
+    --amber-fg: #ddb685;
+    --amber-bg: #3a2f22;
+    --brick-fg: #f2b8b5;
+    --brick-bg: #3e2424;
+
+    --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+  --color-sheet: var(--sheet);
+  --color-subtle: var(--subtle);
+  --color-active: var(--active);
   --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-line: var(--line);
-  --color-field-border: var(--field-border);
-  --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
-  --color-danger: var(--danger);
-  --color-danger-surface: var(--danger-surface);
-  --color-success: var(--success);
-  --color-success-surface: var(--success-surface);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-newsreader);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-disabled: var(--ink-disabled);
+  --color-hairline: var(--hairline);
+  --color-control-border: var(--control-border);
+  --color-focus: var(--focus);
+  --color-primary-bg: var(--primary-bg);
+  --color-primary-bg-hover: var(--primary-bg-hover);
+  --color-primary-text: var(--primary-text);
+  --color-neutral-fg: var(--neutral-fg);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-slate-fg: var(--slate-fg);
+  --color-slate-bg: var(--slate-bg);
+  --color-sage-fg: var(--sage-fg);
+  --color-sage-bg: var(--sage-bg);
+  --color-amber-fg: var(--amber-fg);
+  --color-amber-bg: var(--amber-bg);
+  --color-brick-fg: var(--brick-fg);
+  --color-brick-bg: var(--brick-bg);
+
+  /*
+    Old names from before DESIGN.md, pointing at the new tokens so pages not yet updated
+    still look right. Remove once every page uses the new names.
+  */
+  --color-paper: var(--canvas);
+  --color-surface: var(--sheet);
+  --color-muted: var(--ink-secondary);
+  --color-line: var(--hairline);
+  --color-field-border: var(--control-border);
+  --color-accent: var(--primary-bg);
+  --color-accent-ink: var(--primary-text);
+  --color-danger: var(--brick-fg);
+  --color-danger-surface: var(--brick-bg);
+  --color-success: var(--sage-fg);
+  --color-success-surface: var(--sage-bg);
+
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-serif: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --shadow-float: var(--shadow-float);
+}
+
+/* Type scale (DESIGN.md, Typography). Weights 400/500/600 only. */
+@utility text-title-xl {
+  font-size: 30px;
+  line-height: 38px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  @media (min-width: 768px) {
+    font-size: 40px;
+    line-height: 48px;
+  }
+}
+@utility text-title-l {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+@utility text-title-m {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+@utility text-title-s {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+@utility text-body-l {
+  font-size: 17px;
+  line-height: 28px;
+  letter-spacing: -0.005em;
+}
+@utility text-body {
+  font-size: 16px;
+  line-height: 26px;
+}
+@utility text-body-compact {
+  font-size: 15px;
+  line-height: 24px;
+}
+@utility text-small {
+  font-size: 13px;
+  line-height: 20px;
+}
+@utility text-label {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+@utility text-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 html {
-  background: var(--paper);
+  background: var(--canvas);
   color: var(--ink);
 }
 
 body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 26px;
   -webkit-font-smoothing: antialiased;
+  /* Long Norwegian compound words must wrap, never overflow (DESIGN.md, Text handling). */
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
-/* Visible focus for keyboard users everywhere. */
+/* Visible focus on every focusable element. Never remove it. */
 :focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 3px;
-  border-radius: 2px;
+  outline-offset: 2px;
+}
+
+/* Inputs at 16px so mobile browsers don't zoom. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* Links in running text. */
+.prose-link,
+.prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 120ms ease-out;
+}
+.prose-link:hover,
+.prose a:hover {
+  text-decoration-color: var(--focus);
 }
 
 @media (prefers-reduced-motion: reduce) {
