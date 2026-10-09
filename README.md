@@ -27,7 +27,7 @@ Demo users: `ola@fjordlys.example`, `kari@fjordlys.example` (Fjordlys Rør AS) a
 ```sh
 pnpm check      # lint + type check + unit tests
 pnpm test:rls   # RLS isolation tests (needs `pnpm db:start`)
-pnpm test:e2e   # Playwright login flows, desktop and mobile (needs `pnpm db:start`)
+pnpm test:e2e   # Playwright: login, all milestone flows, isolation, axe (WCAG 2.1 AA), desktop and mobile
 ```
 
 ## Hosted Supabase settings
@@ -40,6 +40,8 @@ Mirror `supabase/config.toml` in the dashboard (Authentication):
 - Email rate limit (minimum interval per user): 60 seconds. Locally it is 5 seconds so tests run quickly.
 - Email template "Magic link": contents of `supabase/templates/magic_link.html`.
 - Custom SMTP via Resend, so login email comes from your own domain.
+
+Going to production: see [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Email and the daily job
 

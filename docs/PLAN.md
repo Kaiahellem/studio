@@ -1,6 +1,6 @@
 # Client Hub — Plan (for approval)
 
-Status: **draft, awaiting approval.** No application code is written until this is approved.
+Status: **approved and built** (milestones 1–8, October 2026). Production setup: [`DEPLOY.md`](DEPLOY.md).
 
 This covers what `BRIEF.md` asks for in step 1 of "How to work": data model, RLS policies, folder structure and route map, plus the decisions and open questions that came up while working through the brief.
 
