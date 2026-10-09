@@ -1,6 +1,9 @@
-import { createHmac, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/db/types";
+import { totp } from "../totp";
+
+export { totp };
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -45,22 +48,6 @@ export async function signIn(email: string): Promise<Db> {
   const { error } = await client.auth.verifyOtp({ token_hash: link.data.properties.hashed_token, type: "email" });
   if (error) throw new Error(`verifyOtp ${email}: ${error.message}`);
   return client;
-}
-
-// RFC 6238 TOTP, so tests can reach aal2 like a real admin.
-export function totp(base32Secret: string, now = Date.now()): string {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  let bits = "";
-  for (const char of base32Secret.replace(/=+$/, "").toUpperCase()) {
-    bits += alphabet.indexOf(char).toString(2).padStart(5, "0");
-  }
-  const key = Buffer.from(bits.match(/.{8}/g)!.map((b) => parseInt(b, 2)));
-  const counter = Buffer.alloc(8);
-  counter.writeBigUInt64BE(BigInt(Math.floor(now / 1000 / 30)));
-  const hmac = createHmac("sha1", key).update(counter).digest();
-  const offset = hmac[hmac.length - 1] & 0xf;
-  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
-  return code.toString().padStart(6, "0");
 }
 
 export async function signInAdmin(email: string): Promise<Db> {

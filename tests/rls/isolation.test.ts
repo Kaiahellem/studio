@@ -291,3 +291,54 @@ describe("anonymous and public handover", () => {
     expect(must(await client.rpc("get_public_handover", { p_token: page.public_token }))).toBeNull();
   });
 });
+
+describe("admin RPCs are admin only", () => {
+  const calls = () =>
+    [
+      ["create_project_from_template", { p_client_id: f.clientA, p_template_id: f.clientA, p_name: "x" }],
+      ["complete_step", { p_step_id: f.visibleStepA }],
+      ["reopen_step", { p_step_id: f.visibleStepA }],
+      ["move_step", { p_step_id: f.visibleStepA, p_direction: 1 }],
+      ["delete_step", { p_step_id: f.visibleStepA }],
+      ["add_step", { p_phase_id: f.clientA, p_title: "x", p_owner: "client", p_type: "task" }],
+      ["sync_project", { p_project_id: f.projectA }],
+      ["agreements_usage_overview", {}],
+    ] as const;
+
+  it("a client gets a permission error from every admin RPC", async () => {
+    for (const [fn, args] of calls()) {
+      const { error } = await a1.rpc(fn, args as never);
+      expect(error, fn).not.toBeNull();
+    }
+    const step = must(await service.from("project_steps").select("status").eq("id", f.visibleStepA).single());
+    expect(step.status).toBe("active");
+  });
+
+  it("an admin without TOTP is refused too", async () => {
+    const { error } = await adminAal1.rpc("complete_step", { p_step_id: f.visibleStepA });
+    expect(error).not.toBeNull();
+  });
+
+  it("an admin with TOTP can reorder and complete steps, and the next step activates", async () => {
+    const steps = must(
+      await service.from("project_steps").select("id, title, position, status").eq("phase_id",
+        must(await service.from("project_steps").select("phase_id").eq("id", f.visibleStepA).single()).phase_id,
+      ).order("position"),
+    );
+    // "Godta tilbudet" is first and active; moving it down swaps it with the second step.
+    must(await admin.rpc("move_step", { p_step_id: steps[0].id, p_direction: 1 }));
+    const moved = must(await service.from("project_steps").select("id, position").in("id", [steps[0].id, steps[1].id]));
+    expect(moved.find((s) => s.id === steps[0].id)!.position).toBe(steps[1].position);
+
+    must(await admin.rpc("complete_step", { p_step_id: steps[0].id }));
+    const after = must(await service.from("project_steps").select("id, status").in("id", [steps[0].id, steps[1].id]));
+    expect(after.find((s) => s.id === steps[0].id)!.status).toBe("done");
+    expect(after.find((s) => s.id === steps[1].id)!.status).toBe("active");
+  });
+
+  it("deleting a step with approvals fails, so the record survives", async () => {
+    const { error } = await admin.rpc("delete_step", { p_step_id: f.visibleStepA });
+    expect(error?.message).toContain("append-only");
+    must(await service.from("approvals").select("id").eq("id", f.approvalA).single());
+  });
+});

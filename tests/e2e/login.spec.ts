@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { totp } from "../rls/helpers";
+import { totp } from "../totp";
 import { createAdminUser, createClientUser, readLoginEmail, requestLogin } from "./helpers";
 
 test.describe("client login", () => {
@@ -99,8 +99,8 @@ test("admin sets up TOTP on first login, and needs it on the next", async ({ pag
   await page.getByRole("button", { name: "Logg ut" }).click();
   await expect(page.getByRole("heading", { name: "Logg inn" })).toBeVisible();
 
-  // Supabase sends at most one login email per address per 60 seconds (max_frequency).
-  await page.waitForTimeout(61_000);
+  // Supabase sends at most one login email per address per interval (5 s locally).
+  await page.waitForTimeout(6_000);
 
   await loginWithCode(page, admin.email);
   await expect(page.getByRole("heading", { name: "Bekreft at det er deg" })).toBeVisible();

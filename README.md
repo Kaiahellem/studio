@@ -37,6 +37,7 @@ Mirror `supabase/config.toml` in the dashboard (Authentication):
 - **Allow new users to sign up: off.** Only invited users can log in.
 - **Email provider: on.** Turning it off disables login entirely, not just sign-up.
 - **MFA → TOTP: on.**
+- Email rate limit (minimum interval per user): 60 seconds. Locally it is 5 seconds so tests run quickly.
 - Email template "Magic link": contents of `supabase/templates/magic_link.html`.
 - Custom SMTP via Resend, so login email comes from your own domain.
 

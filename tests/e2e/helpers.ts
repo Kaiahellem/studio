@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/db/types";
+import { totp } from "../totp";
 
 export const service = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
   auth: { autoRefreshToken: false, persistSession: false },
@@ -63,4 +64,39 @@ export async function requestLogin(page: Page, email: string, path = "/logg-inn"
   await page.getByLabel("E-postadresse").fill(email);
   await page.getByRole("button", { name: "Send meg innloggingslenke" }).click();
   await expect(page.getByRole("heading", { name: "Sjekk e-posten din" })).toBeVisible();
+}
+
+// An admin who already has TOTP set up (via the API), so tests can go straight to the studio.
+export async function createAdminWithTotp(): Promise<{ email: string; secret: string }> {
+  const { email } = await createAdminUser();
+  const link = await service.auth.admin.generateLink({ type: "magiclink", email });
+  if (link.error) throw link.error;
+  const user = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const verified = await user.auth.verifyOtp({ token_hash: link.data.properties.hashed_token, type: "email" });
+  if (verified.error) throw verified.error;
+  const factor = await user.auth.mfa.enroll({ factorType: "totp", friendlyName: "e2e" });
+  if (factor.error) throw factor.error;
+  const ok = await user.auth.mfa.challengeAndVerify({ factorId: factor.data.id, code: totp(factor.data.totp.secret) });
+  if (ok.error) throw ok.error;
+  // generateLink counts towards the per-email interval (5 s locally) for the UI login that follows.
+  await new Promise((r) => setTimeout(r, 6_000));
+  return { email, secret: factor.data.totp.secret };
+}
+
+// Logs in through the UI: email code, then TOTP.
+export async function loginAsAdmin(page: Page, admin: { email: string; secret: string }) {
+  const since = new Date();
+  await requestLogin(page, admin.email);
+  const { code } = await readLoginEmail(admin.email, since);
+  await page.getByLabel("Sekssifret kode").fill(code);
+  await page.getByRole("button", { name: "Logg inn" }).click();
+  await expect(page.getByRole("heading", { name: "Bekreft at det er deg" })).toBeVisible();
+  // The API enrollment used the current window's code; wait for a fresh one.
+  const window = Math.floor(Date.now() / 30_000);
+  while (Math.floor(Date.now() / 30_000) === window) await new Promise((r) => setTimeout(r, 250));
+  await page.getByLabel("Kode fra autentiseringsappen").fill(totp(admin.secret));
+  await page.getByRole("button", { name: "Bekreft" }).click();
+  await expect(page.getByRole("heading", { name: "Oversikt" })).toBeVisible();
 }
