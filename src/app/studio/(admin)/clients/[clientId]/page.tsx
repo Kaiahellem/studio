@@ -8,6 +8,7 @@ import { getClientDetails } from "@/features/clients/queries";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 import { ClientFields } from "../client-fields";
+import { Agreements } from "./agreements";
 
 const s = t.studio.clients;
 
@@ -54,6 +55,8 @@ export default async function ClientPage({ params }: PageProps<"/studio/clients/
               </ul>
             )}
           </Section>
+
+          <Agreements clientId={client.id} />
 
           <Section id="members" title={s.members}>
             {members.length === 0 ? (

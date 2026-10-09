@@ -15,6 +15,8 @@ function NavLinks({ current }: { current: boolean }) {
   const links = [
     { href: "/studio", label: t.studio.nav.dashboard, exact: true },
     { href: "/studio/clients", label: t.studio.nav.clients },
+    { href: "/studio/change-requests", label: t.studio.nav.requests },
+    { href: "/studio/plans", label: t.studio.nav.plans },
     { href: "/studio/sikkerhet", label: t.studio.nav.security },
   ];
   return links.map((l) =>

@@ -82,7 +82,10 @@ export default async function StudioDashboard() {
                 {changeRequests.map((cr) => (
                   <li key={cr.id} className="flex flex-col gap-1 py-3">
                     <p className="font-medium">
-                      {cr.title} {cr.urgency === "urgent" && <Badge tone="danger">{d.urgent}</Badge>}
+                      <Link href={`/studio/change-requests/${cr.id}`} className="underline-offset-4 hover:underline">
+                        {cr.title}
+                      </Link>{" "}
+                      {cr.urgency === "urgent" && <Badge tone="danger">{d.urgent}</Badge>}
                     </p>
                     <p className="text-sm text-muted">
                       {cr.clients?.name} · {formatDate(cr.created_at)}

@@ -12,6 +12,7 @@ function ProjectNav({ projectId, current }: { projectId: string; current: boolea
     { href: `${base}/documents`, label: n.documents },
     { href: `${base}/site`, label: n.site },
     { href: `${base}/handover`, label: n.handover },
+    { href: `${base}/maintenance`, label: n.maintenance },
     { href: `${base}/activity`, label: n.activity },
   ];
   return links.map((l) =>
@@ -31,7 +32,7 @@ export default async function ProjectLayout({ children, params }: LayoutProps<"/
   const { projectId } = await params;
   return (
     <>
-      <nav aria-label={n.label} className="-mt-4 mb-8 flex gap-6 overflow-x-auto border-b border-line pb-3 text-sm">
+      <nav aria-label={n.label} className="-mt-4 mb-8 flex flex-wrap gap-x-6 gap-y-2 border-b border-line pb-3 text-sm">
         <Suspense fallback={<ProjectNav projectId={projectId} current={false} />}>
           <ProjectNav projectId={projectId} current />
         </Suspense>
