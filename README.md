@@ -41,6 +41,19 @@ Mirror `supabase/config.toml` in the dashboard (Authentication):
 - Email template "Magic link": contents of `supabase/templates/magic_link.html`.
 - Custom SMTP via Resend, so login email comes from your own domain.
 
+## Email and the daily job
+
+Notifications go through Resend when `RESEND_API_KEY` is set, otherwise to Mailpit locally
+(`MAILPIT_URL`). Set `EMAIL_FROM` to an address on a domain verified in Resend (EU region).
+
+Vercel Cron calls `/api/cron/daily` at 06:00 UTC (see `vercel.json`) with
+`Authorization: Bearer $CRON_SECRET`: reminders (after 5 days, then weekly; off per project),
+renewals within 30 days and maintenance hours above 80 %. Locally:
+
+```sh
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/daily
+```
+
 ## Structure
 
 - `supabase/migrations/` – schema, RLS, functions, storage and the Website template. All schema changes go here.

@@ -133,3 +133,27 @@ export async function stepIdByTitle(projectId: string, title: string): Promise<s
   if (error) throw error;
   return data.id;
 }
+
+type MailpitSummary = { ID: string; Created: string; Subject: string };
+
+// Waits for an email to `to` whose subject contains `subject`, sent after `since`.
+export async function waitForEmail(to: string, subject: string, since: Date, timeoutMs = 10_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`);
+    const { messages } = (await res.json()) as { messages: MailpitSummary[] };
+    const hit = (messages ?? []).find((m) => new Date(m.Created) > since && m.Subject.includes(subject));
+    if (hit) {
+      const full = (await (await fetch(`${MAILPIT}/api/v1/message/${hit.ID}`)).json()) as { Subject: string; Text: string; HTML: string };
+      return full;
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  throw new Error(`No email to ${to} with subject containing "${subject}"`);
+}
+
+export async function countEmails(to: string, subject: string, since: Date) {
+  const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`);
+  const { messages } = (await res.json()) as { messages: MailpitSummary[] };
+  return (messages ?? []).filter((m) => new Date(m.Created) > since && m.Subject.includes(subject)).length;
+}
