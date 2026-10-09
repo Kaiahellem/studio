@@ -1,54 +1,43 @@
 import type { ReactNode } from "react";
+import { buttonVariants } from "@/components/ds/button";
+import { EmptyState } from "@/components/ds/empty-state";
+import { Tag, type Tone } from "@/components/ds/tag";
 
-// Shared classes, so buttons and links look the same wherever they are used.
+// Older helpers, now backed by the design system in components/ds. Pages are moving to the
+// ds components one at a time; these keep the rest consistent meanwhile.
+
 export const buttonClass = {
-  primary:
-    "inline-flex h-11 items-center justify-center rounded-md bg-accent px-5 text-sm font-medium text-accent-ink hover:opacity-90 disabled:opacity-70",
-  secondary:
-    "inline-flex h-11 items-center justify-center rounded-md border border-field-border bg-surface px-5 text-sm font-medium text-ink hover:bg-paper disabled:opacity-70",
-  small:
-    "inline-flex h-9 items-center justify-center rounded-md border border-field-border bg-surface px-3 text-sm text-ink hover:bg-paper disabled:opacity-70",
-  danger:
-    "inline-flex h-9 items-center justify-center rounded-md border border-danger bg-surface px-3 text-sm text-danger hover:bg-danger-surface disabled:opacity-70",
-  link: "text-sm underline underline-offset-4 hover:no-underline",
+  primary: buttonVariants.primary,
+  secondary: buttonVariants.secondary,
+  small: buttonVariants.secondary,
+  danger: buttonVariants.destructive,
+  link: buttonVariants.ghost,
 } as const;
 
-type Tone = "neutral" | "accent" | "success" | "danger" | "muted";
+type LegacyTone = "neutral" | "accent" | "success" | "danger" | "muted";
+const toneMap: Record<LegacyTone, Tone> = { neutral: "neutral", accent: "slate", success: "sage", danger: "brick", muted: "neutral" };
 
-const toneClass: Record<Tone, string> = {
-  neutral: "border-field-border text-ink",
-  accent: "border-accent bg-accent text-accent-ink",
-  success: "border-success text-success",
-  danger: "border-danger text-danger",
-  muted: "border-line text-muted",
-};
-
-// Status label. Always text, never colour alone.
-export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: Tone }) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${toneClass[tone]}`}>
-      {children}
-    </span>
-  );
+export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: LegacyTone }) {
+  return <Tag tone={toneMap[tone]}>{children}</Tag>;
 }
 
 export function PageHeader({ title, eyebrow, actions }: { title: string; eyebrow?: ReactNode; actions?: ReactNode }) {
   return (
     <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        {eyebrow && <p className="mb-2 text-sm text-muted">{eyebrow}</p>}
-        <h1 className="font-serif text-4xl leading-tight tracking-tight">{title}</h1>
+      <div className="min-w-0">
+        {eyebrow && <p className="mb-2 text-small text-ink-secondary">{eyebrow}</p>}
+        <h1 className="text-title-xl">{title}</h1>
       </div>
-      {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
 
 export function Section({ title, id, children, actions }: { title: string; id: string; children: ReactNode; actions?: ReactNode }) {
   return (
-    <section aria-labelledby={id} className="mb-12">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3 border-b border-line pb-2">
-        <h2 id={id} className="font-serif text-2xl">
+    <section aria-labelledby={id} className="mb-16">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline pb-2">
+        <h2 id={id} className="text-title-l">
           {title}
         </h2>
         {actions}
@@ -59,5 +48,5 @@ export function Section({ title, id, children, actions }: { title: string; id: s
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="text-muted">{children}</p>;
+  return <EmptyState>{children}</EmptyState>;
 }

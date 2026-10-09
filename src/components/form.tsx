@@ -1,29 +1,48 @@
 "use client";
 
+import { CircleAlert, CircleCheck } from "lucide-react";
 import {
   useActionState,
   useId,
+  useRef,
+  useState,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
 import { useFormStatus } from "react-dom";
-import { buttonClass } from "@/components/ui";
+import { buttonVariants, type ButtonVariant } from "@/components/ds/button";
+import { Dialog } from "@/components/ds/dialog";
+import { Icon } from "@/components/ds/icon";
+import { formatWeek } from "@/lib/format/nb";
+import { t } from "@/i18n/nb";
 
 export type FormState = { error?: string; message?: string } | undefined;
 
+// Inputs (DESIGN.md): --sheet background, --control-border, 4px radius, 40px tall (44px on
+// mobile), 16px text; label always visible above; helper text below in Small; errors in brick
+// with an icon, linked through aria-describedby, and the border turns brick.
 const controlClass = (error?: string, extra = "") =>
-  `w-full rounded-md border bg-surface px-4 text-base text-ink placeholder:text-muted ${
-    error ? "border-danger" : "border-field-border"
+  `w-full rounded-sm border bg-sheet px-3 text-[16px] text-ink placeholder:text-ink-secondary disabled:opacity-60 ${
+    error ? "border-brick-fg" : "border-control-border"
   } ${extra}`;
 
-function useFieldIds(id: string | undefined, hint?: string, error?: string) {
+function useFieldIds(id: string | undefined, hint?: boolean, error?: string) {
   const autoId = useId();
   const inputId = id ?? autoId;
   const hintId = hint ? `${inputId}-hint` : undefined;
   const errorId = error ? `${inputId}-error` : undefined;
   return { inputId, hintId, errorId, describedBy: [hintId, errorId].filter(Boolean).join(" ") || undefined };
+}
+
+export function FieldError({ id, children }: { id?: string; children: ReactNode }) {
+  return (
+    <p id={id} className="flex items-start gap-2 text-small font-medium text-brick-fg">
+      <Icon icon={CircleAlert} className="mt-0.5" />
+      <span>{children}</span>
+    </p>
+  );
 }
 
 function FieldFrame({
@@ -34,55 +53,59 @@ function FieldFrame({
   children,
 }: {
   label: string;
-  hint?: string;
+  hint?: ReactNode;
   error?: string;
   ids: ReturnType<typeof useFieldIds>;
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={ids.inputId} className="text-sm font-medium">
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={ids.inputId} className="text-label">
         {label}
       </label>
+      {children}
       {hint && (
-        <p id={ids.hintId} className="text-sm text-muted">
+        <p id={ids.hintId} className="text-small text-ink-secondary">
           {hint}
         </p>
       )}
-      {children}
-      {error && (
-        <p id={ids.errorId} className="text-sm font-medium text-danger">
-          {/* Icon + text, so the error isn't conveyed by colour alone. */}
-          <span aria-hidden="true">⚠ </span>
-          {error}
-        </p>
-      )}
+      {error && <FieldError id={ids.errorId}>{error}</FieldError>}
     </div>
   );
 }
 
 type FieldProps = InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string };
 
-// Label, hint and error are always wired to the control so screen readers announce them.
-export function Field({ label, hint, error, id, className, ...input }: FieldProps) {
-  const ids = useFieldIds(id, hint, error);
+export function Field({ label, hint, error, id, className, type, defaultValue, onChange, ...input }: FieldProps) {
+  // Date fields show the week number, since Norwegian businesses plan by week (DESIGN.md).
+  const isDate = type === "date";
+  const [week, setWeek] = useState(isDate && typeof defaultValue === "string" && defaultValue ? formatWeek(defaultValue) : "");
+  const hintText = [hint, isDate ? week : ""].filter(Boolean).join(" · ");
+  const ids = useFieldIds(id, Boolean(hintText), error);
   return (
-    <FieldFrame label={label} hint={hint} error={error} ids={ids}>
+    <FieldFrame label={label} hint={hintText || undefined} error={error} ids={ids}>
       <input
         id={ids.inputId}
+        type={type}
+        defaultValue={defaultValue}
         aria-invalid={error ? true : undefined}
         aria-describedby={ids.describedBy}
-        className={controlClass(error, `h-12 ${className ?? ""}`)}
+        className={controlClass(error, `min-h-11 md:min-h-10 ${className ?? ""}`)}
+        onChange={(e) => {
+          if (isDate) setWeek(e.target.value ? formatWeek(e.target.value) : "");
+          onChange?.(e);
+        }}
         {...input}
       />
     </FieldFrame>
   );
 }
 
-type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string; error?: string };
+type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string; error?: string; grow?: boolean };
 
-export function TextArea({ label, hint, error, id, className, rows = 4, ...input }: TextAreaProps) {
-  const ids = useFieldIds(id, hint, error);
+// `grow` lets the field grow as you type (comments).
+export function TextArea({ label, hint, error, id, className, rows = 4, grow = false, onInput, ...input }: TextAreaProps) {
+  const ids = useFieldIds(id, Boolean(hint), error);
   return (
     <FieldFrame label={label} hint={hint} error={error} ids={ids}>
       <textarea
@@ -90,7 +113,15 @@ export function TextArea({ label, hint, error, id, className, rows = 4, ...input
         rows={rows}
         aria-invalid={error ? true : undefined}
         aria-describedby={ids.describedBy}
-        className={controlClass(error, `py-3 leading-relaxed ${className ?? ""}`)}
+        className={controlClass(error, `py-2 leading-relaxed ${grow ? "resize-none overflow-hidden" : ""} ${className ?? ""}`)}
+        onInput={(e) => {
+          if (grow) {
+            const el = e.currentTarget;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight + 2}px`;
+          }
+          onInput?.(e);
+        }}
         {...input}
       />
     </FieldFrame>
@@ -105,14 +136,14 @@ type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
 };
 
 export function Select({ label, hint, error, id, options, className, ...select }: SelectProps) {
-  const ids = useFieldIds(id, hint, error);
+  const ids = useFieldIds(id, Boolean(hint), error);
   return (
     <FieldFrame label={label} hint={hint} error={error} ids={ids}>
       <select
         id={ids.inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={ids.describedBy}
-        className={controlClass(error, `h-12 ${className ?? ""}`)}
+        className={controlClass(error, `min-h-11 md:min-h-10 ${className ?? ""}`)}
         {...select}
       >
         {options.map((o) => (
@@ -125,17 +156,26 @@ export function Select({ label, hint, error, id, options, className, ...select }
   );
 }
 
+// The whole row is the click target (44px on mobile).
 export function Checkbox({ label, id, ...input }: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   const autoId = useId();
   const inputId = id ?? autoId;
   return (
-    <div className="flex items-center gap-3">
-      <input id={inputId} type="checkbox" className="size-5 accent-accent" {...input} />
-      <label htmlFor={inputId} className="text-sm font-medium">
-        {label}
-      </label>
-    </div>
+    <label htmlFor={inputId} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-9">
+      <input id={inputId} type="checkbox" className="size-4 shrink-0 cursor-pointer accent-primary-bg" {...input} />
+      <span className="text-body">{label}</span>
+    </label>
   );
+}
+
+type AnyVariant = ButtonVariant | "small" | "danger" | "link";
+
+// Older call sites used these names.
+function variantOf(v: AnyVariant): ButtonVariant {
+  if (v === "small") return "secondary";
+  if (v === "link") return "ghost";
+  if (v === "danger") return "destructive";
+  return v;
 }
 
 export function SubmitButton({
@@ -148,7 +188,7 @@ export function SubmitButton({
 }: {
   children: ReactNode;
   pendingText: string;
-  variant?: keyof typeof buttonClass;
+  variant?: AnyVariant;
   full?: boolean;
   // A named submit button tells the action which button was pressed.
   name?: string;
@@ -161,7 +201,8 @@ export function SubmitButton({
       name={name}
       value={value}
       disabled={pending}
-      className={`${buttonClass[variant]} ${full ? "h-12 w-full text-base sm:w-auto" : ""}`}
+      aria-busy={pending || undefined}
+      className={`${buttonVariants[variantOf(variant)]} ${full ? "w-full sm:w-auto" : ""}`}
     >
       {pending ? pendingText : children}
     </button>
@@ -171,7 +212,7 @@ export function SubmitButton({
 export function SecondaryButton({ children }: { children: ReactNode }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className={`${buttonClass.link} font-medium text-ink disabled:opacity-70`}>
+    <button type="submit" disabled={pending} className={buttonVariants.ghost}>
       {children}
     </button>
   );
@@ -182,15 +223,15 @@ export function FormMessage({ error, message }: { error?: string; message?: stri
   return (
     <div aria-live="polite" role="status">
       {error && (
-        <p role="alert" className="rounded-md bg-danger-surface px-4 py-3 text-sm text-danger">
-          <span aria-hidden="true">⚠ </span>
-          {error}
+        <p role="alert" className="flex items-start gap-2 rounded-sm border border-brick-fg bg-brick-bg px-3 py-2 text-body text-brick-fg">
+          <Icon icon={CircleAlert} className="mt-[5px]" />
+          <span>{error}</span>
         </p>
       )}
       {message && !error && (
-        <p className="rounded-md bg-success-surface px-4 py-3 text-sm text-success">
-          <span aria-hidden="true">✓ </span>
-          {message}
+        <p className="flex items-start gap-2 rounded-sm border border-sage-fg bg-sage-bg px-3 py-2 text-body text-sage-fg">
+          <Icon icon={CircleCheck} className="mt-[5px]" />
+          <span>{message}</span>
         </p>
       )}
     </div>
@@ -206,12 +247,14 @@ export function ActionForm({
   submitLabel,
   pendingLabel,
   className = "flex flex-col gap-6",
+  submitVariant = "primary",
 }: {
   action: Action;
   children: ReactNode;
   submitLabel: string;
   pendingLabel: string;
   className?: string;
+  submitVariant?: AnyVariant;
 }) {
   const [state, formAction] = useActionState(action, undefined);
   return (
@@ -219,54 +262,85 @@ export function ActionForm({
       {children}
       <FormMessage error={state?.error} message={state?.message} />
       <div>
-        <SubmitButton pendingText={pendingLabel}>{submitLabel}</SubmitButton>
+        <SubmitButton pendingText={pendingLabel} variant={submitVariant}>
+          {submitLabel}
+        </SubmitButton>
       </div>
     </form>
   );
 }
 
-// A single button that runs a server action, optionally after a confirmation, and shows
-// any error next to it.
+// One button that runs a server action. With `confirm` it first asks in a dialog;
+// destructive actions always do (DESIGN.md, Buttons).
 export function ActionButton({
   action,
   label,
   ariaLabel,
   confirm,
-  variant = "small",
+  variant = "secondary",
   hidden,
 }: {
   action: Action;
   label: string;
   ariaLabel?: string;
   confirm?: string;
-  variant?: keyof typeof buttonClass;
+  variant?: AnyVariant;
   hidden?: Record<string, string>;
 }) {
   const [state, formAction] = useActionState(action, undefined);
+  const [asking, setAsking] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
+  const v = variantOf(variant);
+
   return (
-    <form
-      action={formAction}
-      onSubmit={(e) => {
-        if (confirm && !window.confirm(confirm)) e.preventDefault();
-      }}
-      className="inline-flex flex-col gap-1"
-    >
+    <form ref={form} action={formAction} className="inline-flex flex-col gap-1">
       {hidden && Object.entries(hidden).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
-      <ActionButtonInner label={label} ariaLabel={ariaLabel} variant={variant} />
+      {confirm ? (
+        <button type="button" aria-label={ariaLabel} aria-haspopup="dialog" className={buttonVariants[v]} onClick={() => setAsking(true)}>
+          {label}
+        </button>
+      ) : (
+        <ActionButtonInner label={label} ariaLabel={ariaLabel} variant={v} />
+      )}
+      {confirm && (
+        <Dialog
+          open={asking}
+          onClose={() => setAsking(false)}
+          title={ariaLabel ?? label}
+          footer={
+            <>
+              <button type="button" className={buttonVariants.secondary} onClick={() => setAsking(false)}>
+                {t.common.cancel}
+              </button>
+              <button
+                type="button"
+                className={buttonVariants[v === "destructive" ? "destructive" : "primary"]}
+                onClick={() => {
+                  setAsking(false);
+                  form.current?.requestSubmit();
+                }}
+              >
+                {label}
+              </button>
+            </>
+          }
+        >
+          {confirm}
+        </Dialog>
+      )}
       {state?.error && (
-        <p role="alert" className="max-w-xs text-xs text-danger">
-          <span aria-hidden="true">⚠ </span>
-          {state.error}
-        </p>
+        <div role="alert" className="max-w-xs">
+          <FieldError>{state.error}</FieldError>
+        </div>
       )}
     </form>
   );
 }
 
-function ActionButtonInner({ label, ariaLabel, variant }: { label: string; ariaLabel?: string; variant: keyof typeof buttonClass }) {
+function ActionButtonInner({ label, ariaLabel, variant }: { label: string; ariaLabel?: string; variant: ButtonVariant }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} aria-label={ariaLabel} className={buttonClass[variant]}>
+    <button type="submit" disabled={pending} aria-label={ariaLabel} className={buttonVariants[variant]}>
       {label}
     </button>
   );

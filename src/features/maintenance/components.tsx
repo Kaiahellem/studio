@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui";
-import { formatMinutes } from "@/lib/format/money";
+import { Tag, type Tone } from "@/components/ds/tag";
+import { formatMinutes } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const m = t.client.maintenance;
@@ -11,19 +11,27 @@ export function HoursMeter({ used, included, month }: { used: number; included: 
   const over = used > included;
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm text-muted">{m.hoursThisMonth(month)}</p>
-      <p className="text-2xl">{m.hoursOf(formatMinutes(used), formatMinutes(included))}</p>
-      <div aria-hidden="true" className="h-2 w-full overflow-hidden rounded-full bg-line">
-        <div className={`h-full rounded-full ${over ? "bg-danger" : "bg-accent"}`} style={{ width: `${Math.round(share * 100)}%` }} />
+      <p className="text-label text-ink-secondary">{m.hoursThisMonth(month)}</p>
+      <p className="text-title-m">{m.hoursOf(formatMinutes(used), formatMinutes(included))}</p>
+      <div aria-hidden="true" className="h-1.5 w-full overflow-hidden rounded-sm bg-active">
+        <div className={`h-full ${over ? "bg-brick-fg" : "bg-slate-fg"}`} style={{ width: `${Math.round(share * 100)}%` }} />
       </div>
-      {over && <p className="text-sm">{m.over}</p>}
+      {over && <p className="text-small text-amber-fg">{m.over}</p>}
     </div>
   );
 }
 
 type Status = keyof typeof r.status;
 
+const requestTone: Record<Status, Tone> = {
+  new: "neutral",
+  accepted: "slate",
+  in_progress: "slate",
+  waiting_on_client: "amber",
+  done: "sage",
+  declined: "neutral",
+};
+
 export function RequestStatus({ status }: { status: Status }) {
-  const tone = status === "done" ? "success" : status === "waiting_on_client" ? "accent" : status === "declined" ? "muted" : "neutral";
-  return <Badge tone={tone}>{r.status[status]}</Badge>;
+  return <Tag tone={requestTone[status]}>{r.status[status]}</Tag>;
 }

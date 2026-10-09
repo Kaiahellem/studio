@@ -1,7 +1,7 @@
 import { ActionForm, Checkbox, TextArea } from "@/components/form";
-import { Badge } from "@/components/ui";
+import { Tag } from "@/components/ds/tag";
 import { addCommentAction } from "@/features/steps/actions";
-import { formatDateTime } from "@/lib/format/date";
+import { formatDateTime, formatRelative } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const c = t.client.comments;
@@ -14,7 +14,16 @@ export type ThreadComment = {
   author: { name: string; isYou: boolean; isStudio: boolean };
 };
 
-// Questions stay in the hub instead of SMS (BRIEF.md). Shared by the client and the studio.
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toLocaleUpperCase("nb"))
+    .join("") || "?";
+
+// Like document comments: initials, name, time, text; no speech bubbles. The input sits at
+// the bottom and grows as you type (DESIGN.md, Comments). Shared by client and studio.
 export function CommentThread({
   comments,
   target,
@@ -28,33 +37,38 @@ export function CommentThread({
 }) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
-    <section aria-labelledby="comments-heading" className="flex flex-col gap-6">
-      <Heading id="comments-heading" className="font-serif text-2xl">
+    <section aria-labelledby="comments-heading" className="flex flex-col gap-4">
+      <Heading id="comments-heading" className={headingLevel === 2 ? "text-title-l" : "text-title-m"}>
         {c.heading}
       </Heading>
       {comments.length === 0 ? (
-        <p className="text-muted">{c.empty}</p>
+        <p className="text-ink-secondary">{c.empty}</p>
       ) : (
-        <ol className="flex flex-col gap-4">
+        <ol className="flex flex-col">
           {comments.map((comment) => (
-            <li
-              key={comment.id}
-              className={`rounded-lg border p-4 ${comment.internal ? "border-dashed border-field-border bg-paper" : "border-line bg-surface"} ${
-                comment.author.isYou ? "sm:ml-12" : "sm:mr-12"
-              }`}
-            >
-              <p className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-medium">{comment.author.name}</span>
-                <span className="text-muted">· {formatDateTime(comment.created_at)}</span>
-                {comment.internal && <Badge tone="muted">{t.studio.step.internalBadge}</Badge>}
-              </p>
-              <p className="whitespace-pre-line leading-relaxed">{comment.body}</p>
+            <li key={comment.id} className="flex gap-3 border-b border-hairline py-4 last:border-b-0">
+              <span
+                aria-hidden="true"
+                className={`flex size-8 shrink-0 items-center justify-center rounded-sm text-label ${comment.author.isStudio ? "bg-slate-bg text-slate-fg" : "bg-subtle text-ink"}`}
+              >
+                {initials(comment.author.name)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-label">{comment.author.name}</span>
+                  <time dateTime={comment.created_at} title={formatDateTime(comment.created_at)} className="text-small text-ink-secondary">
+                    {formatRelative(comment.created_at)}
+                  </time>
+                  {comment.internal && <Tag tone="amber">{t.studio.step.internalBadge}</Tag>}
+                </p>
+                <p className="mt-1 whitespace-pre-line text-body">{comment.body}</p>
+              </div>
             </li>
           ))}
         </ol>
       )}
-      <ActionForm action={addCommentAction.bind(null, target)} submitLabel={c.submit} pendingLabel={t.forms.submitting}>
-        <TextArea label={c.label} name="body" rows={3} required />
+      <ActionForm action={addCommentAction.bind(null, target)} submitLabel={c.submit} pendingLabel={t.forms.submitting} submitVariant="secondary" className="flex flex-col gap-3">
+        <TextArea label={c.label} name="body" rows={2} grow required />
         {allowInternal && <Checkbox label={t.studio.step.internal} name="internal" />}
       </ActionForm>
     </section>

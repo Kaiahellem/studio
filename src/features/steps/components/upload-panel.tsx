@@ -1,6 +1,9 @@
 "use client";
 
 import { useId, useRef, useState, type DragEvent } from "react";
+import { CircleAlert, CircleCheck, Loader, Upload as UploadIcon } from "lucide-react";
+import { buttonVariants } from "@/components/ds/button";
+import { Icon } from "@/components/ds/icon";
 import { formatBytes } from "@/lib/format/file";
 import { createClient } from "@/lib/supabase/browser";
 import { t } from "@/i18n/nb";
@@ -68,7 +71,7 @@ export function UploadPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -77,18 +80,16 @@ export function UploadPanel({
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         // The input is visually hidden, so the whole drop zone shows keyboard focus.
-        className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-4 has-[input:focus-visible]:outline-ink ${
-          dragging ? "border-accent bg-surface" : "border-field-border bg-surface/60"
+        className={`flex flex-col items-center justify-center gap-3 rounded-sm border border-dashed px-4 py-8 text-center transition-colors duration-[120ms] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-focus ${
+          dragging ? "border-focus bg-slate-bg" : "border-control-border"
         }`}
       >
-        <p>
-          <span className="hidden sm:inline">{u.drop} </span>
-          {/* The real control is a native file input, so keyboards and screen readers just work. */}
-          <label htmlFor={inputId} className="cursor-pointer font-medium underline underline-offset-4">
-            <span className="sm:hidden">{u.heading}</span>
-            <span className="hidden sm:inline">{u.choose}</span>
-          </label>
-        </p>
+        <p className="text-body">{u.dropLine}</p>
+        {/* The real control is a native file input, so keyboards and screen readers just work. */}
+        <label htmlFor={inputId} className={`${buttonVariants.secondary} cursor-pointer`}>
+          <Icon icon={UploadIcon} />
+          {u.choose}
+        </label>
         <input
           ref={inputRef}
           id={inputId}
@@ -100,15 +101,15 @@ export function UploadPanel({
           className="sr-only"
           aria-describedby={`${inputId}-limits`}
         />
-        <p id={`${inputId}-limits`} className="text-sm text-muted">
+        <p id={`${inputId}-limits`} className="text-small text-ink-secondary">
           {u.limits(formatBytes(maxBytes))}
         </p>
       </div>
 
-      <ul aria-live="polite" className="flex flex-col gap-1 text-sm">
+      <ul aria-live="polite" className="flex flex-col gap-1 text-small">
         {statuses.map((s, i) => (
-          <li key={i} className={s.kind === "error" ? "font-medium text-danger" : s.kind === "ok" ? "text-success" : "text-muted"}>
-            <span aria-hidden="true">{s.kind === "error" ? "⚠ " : s.kind === "ok" ? "✓ " : "… "}</span>
+          <li key={i} className={`flex items-start gap-2 ${s.kind === "error" ? "font-medium text-brick-fg" : s.kind === "ok" ? "text-sage-fg" : "text-ink-secondary"}`}>
+            <Icon icon={s.kind === "error" ? CircleAlert : s.kind === "ok" ? CircleCheck : Loader} className="mt-0.5" />
             {s.text}
           </li>
         ))}
