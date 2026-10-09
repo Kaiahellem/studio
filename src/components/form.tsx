@@ -143,15 +143,26 @@ export function SubmitButton({
   pendingText,
   variant = "primary",
   full = false,
+  name,
+  value,
 }: {
   children: ReactNode;
   pendingText: string;
   variant?: keyof typeof buttonClass;
   full?: boolean;
+  // A named submit button tells the action which button was pressed.
+  name?: string;
+  value?: string;
 }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className={`${buttonClass[variant]} ${full ? "h-12 w-full text-base sm:w-auto" : ""}`}>
+    <button
+      type="submit"
+      name={name}
+      value={value}
+      disabled={pending}
+      className={`${buttonClass[variant]} ${full ? "h-12 w-full text-base sm:w-auto" : ""}`}
+    >
       {pending ? pendingText : children}
     </button>
   );
