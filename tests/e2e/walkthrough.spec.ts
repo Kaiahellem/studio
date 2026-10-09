@@ -21,12 +21,13 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
 
   const projectUrl = `/studio/projects/${user.projectId}`;
   const stepUrl = async (title: string) => `${projectUrl}/steps/${await stepIdByTitle(user.projectId, title)}`;
-  const dinTur = () => client.getByRole("region", { name: "Din tur" });
+  const dinTur = () => client.getByRole("region", { name: /^Din tur/ });
 
   async function clientOpensDinTur(title: string) {
     await client.goto(`/p/${user.projectId}`);
-    await expect(dinTur().getByText(title, { exact: true })).toBeVisible();
-    await dinTur().getByRole("link", { name: new RegExp(`: ${title.replace(/[()]/g, "\\$&")}$`) }).click();
+    const card = client.getByRole("region", { name: `Din tur: ${title}` });
+    await expect(card).toBeVisible();
+    await card.getByRole("link", { name: new RegExp(`: ${title.replace(/[()]/g, "\\$&")}$`) }).click();
     await expect(client.getByRole("heading", { level: 1, name: title })).toBeVisible();
   }
 
@@ -44,8 +45,8 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   }
 
   async function clientApproves() {
-    client.once("dialog", (d) => d.accept());
     await client.getByRole("button", { name: "Godkjenn" }).click();
+    await client.getByRole("dialog").getByRole("button", { name: "Godkjenn" }).click();
     await expect(client.getByText(/Godkjent .* av Deg/)).toBeVisible();
   }
 
@@ -86,7 +87,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   await studioCompletes("Oppstartsmøte");
   await clientOpensDinTur("Fyll ut oppstartsskjemaet");
   await client.getByRole("textbox", { name: "Hva gjør dere?" }).fill("Rørleggertjenester i Bergen.");
-  await client.getByRole("button", { name: "Lagre og fortsett senere" }).click();
+  await client.getByRole("button", { name: "Lagre utkast" }).click();
   await expect(client.getByText("Lagret. Du kan fortsette når det passer.")).toBeVisible();
   // Submitting with required answers missing points to them.
   await client.getByRole("button", { name: "Send inn" }).click();
@@ -181,20 +182,21 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
   // --- Phase 6: Utvikling, with the staging link ----------------------------------
   await studio.goto(projectUrl);
   const settings = studio.getByRole("region", { name: "Prosjektinnstillinger" });
-  await settings.getByRole("textbox", { name: "Testlenke" }).fill("https://gjennomgang.vercel.app");
+  await settings.getByRole("textbox", { name: "Forhåndsvisning" }).fill("https://gjennomgang.vercel.app");
   await settings.getByRole("button", { name: "Lagre innstillinger" }).click();
   await expect(studio.getByText("Innstillingene er lagret.")).toBeVisible();
   await studioOpensRound("Test og godkjenn nettsiden", "Alt er på plass på testlenken.");
 
   await client.goto(`/p/${user.projectId}`);
-  await expect(client.getByRole("link", { name: /Åpne testversjonen/ })).toHaveAttribute("href", "https://gjennomgang.vercel.app");
+  await expect(client.getByRole("link", { name: /Åpne forhåndsvisningen/ })).toHaveAttribute("href", "https://gjennomgang.vercel.app");
   await clientOpensDinTur("Test og godkjenn nettsiden");
   await clientApproves();
 
   // --- Done with phases 1–6 -----------------------------------------------------
   await client.goto(`/p/${user.projectId}`);
   await expect(client.getByRole("heading", { name: "Ingenting venter på deg nå" })).toBeVisible();
-  await expect(client.locator('li[aria-current="step"]')).toContainText("Fase 7 av 8 · Pågår nå");
+  await expect(client.getByRole("definition").filter({ hasText: "Lansering (7 av 8)" })).toBeVisible();
+  await expect(client.locator('li[aria-current="step"]').getByRole("button", { name: "Lansering" })).toHaveAttribute("aria-expanded", "true");
 
   await studio.goto(`${projectUrl}/activity`);
   for (const event of ["godkjente", "ba om endringer", "sendte inn et skjema", "lastet opp en fil", "delte en ny versjon"]) {

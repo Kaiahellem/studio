@@ -29,7 +29,7 @@ test("create a client, invite a user, create a project and work its steps", asyn
   await members.getByRole("textbox", { name: "Navn", exact: true }).fill("Ida Invitert");
   await members.getByRole("button", { name: "Send invitasjon" }).click();
   await expect(page.getByText(`Invitasjon sendt til ${inviteEmail}.`)).toBeVisible();
-  await expect(members.getByText("Ida Invitert")).toBeVisible();
+  await expect(members.getByText("Ida Invitert", { exact: true })).toBeVisible();
   const invitation = await readLoginEmail(inviteEmail, since);
   expect(invitation.code).toMatch(/^\d{6}$/);
 
@@ -74,7 +74,7 @@ test("create a client, invite a user, create a project and work its steps", asyn
 
   // Project settings
   const settings = page.getByRole("region", { name: "Prosjektinnstillinger" });
-  await settings.getByRole("textbox", { name: "Testlenke" }).fill("https://ny-nettside.vercel.app");
+  await settings.getByRole("textbox", { name: "Forhåndsvisning" }).fill("https://ny-nettside.vercel.app");
   await settings.getByRole("button", { name: "Lagre innstillinger" }).click();
   await expect(page.getByText("Innstillingene er lagret.")).toBeVisible();
 

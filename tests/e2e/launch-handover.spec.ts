@@ -96,8 +96,8 @@ test("launch checklist, handover page, public link and a finished project", asyn
 
   // Client confirms access, then approves the maintenance agreement.
   await client.goto(`/p/${user.projectId}`);
-  const dinTur = client.getByRole("region", { name: "Din tur" });
-  await expect(dinTur.getByText("Bekreft at du har fått tilgangene", { exact: true })).toBeVisible();
+  const dinTur = client.getByRole("region", { name: "Din tur: Bekreft at du har fått tilgangene" });
+  await expect(dinTur).toBeVisible();
   await dinTur.getByRole("link", { name: /Bekreft at du har fått tilgangene$/ }).click();
   await client.getByRole("button", { name: "Marker som gjort" }).click();
   await expect(client.getByText(/Fullført \d+\./)).toBeVisible();
@@ -108,20 +108,19 @@ test("launch checklist, handover page, public link and a finished project", asyn
   await expect(studio.getByText("Runde 1 venter på kunden.")).toBeVisible();
 
   await client.goto(`/p/${user.projectId}`);
-  await client.getByRole("region", { name: "Din tur" }).getByRole("link", { name: /Bekreft vedlikeholdsavtalen$/ }).click();
-  client.once("dialog", (d) => d.accept());
+  await client.getByRole("region", { name: /^Din tur/ }).getByRole("link", { name: /Bekreft vedlikeholdsavtalen$/ }).click();
   await client.getByRole("button", { name: "Godkjenn" }).click();
+  await client.getByRole("dialog").getByRole("button", { name: "Godkjenn" }).click();
   await expect(client.getByText(/Godkjent .* av Deg/)).toBeVisible();
 
   // --- Finished: the client's home shows the live site, CMS and handover -------------
   await client.goto(`/p/${user.projectId}`);
   await expect(client.getByRole("heading", { name: "Prosjektet er ferdig" })).toBeVisible();
-  const live = client.getByRole("region", { name: "Nettsiden din" });
-  await expect(live.getByRole("link", { name: /lansering\.no/ })).toHaveAttribute("href", "https://lansering.no");
-  await expect(live.getByRole("link", { name: /Rediger nettsiden/ })).toHaveAttribute("href", "https://lansering.sanity.studio");
-  await expect(client.getByRole("link", { name: /Åpne testversjonen/ })).toHaveCount(0);
+  await expect(client.getByRole("link", { name: /lansering\.no/ })).toHaveAttribute("href", "https://lansering.no");
+  await expect(client.getByRole("link", { name: /Rediger nettsiden/ })).toHaveAttribute("href", "https://lansering.sanity.studio");
+  await expect(client.getByRole("link", { name: /Åpne forhåndsvisningen/ })).toHaveCount(0);
 
-  await live.getByRole("link", { name: "Se overleveringssiden" }).click();
+  await client.getByRole("link", { name: "Se overleveringssiden" }).click();
   await expect(client.getByRole("heading", { level: 1, name: "Overlevering" })).toBeVisible();
   await expect(client.getByText("#1F4E79").first()).toBeVisible();
   await expect(client.getByRole("button", { name: "Kopier fargekoden #1F4E79 for Fjordblå" })).toBeVisible();

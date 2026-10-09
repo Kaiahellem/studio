@@ -29,8 +29,8 @@ test("turns, approvals, comments and change requests notify the right side", asy
   // The client approves → the studio is told.
   since = new Date();
   await client.goto(`/p/${user.projectId}/steg/${proposal}`);
-  client.once("dialog", (d) => d.accept());
   await client.getByRole("button", { name: "Godkjenn" }).click();
+  await client.getByRole("dialog").getByRole("button", { name: "Godkjenn" }).click();
   await waitForEmail(admin.email, "Varsel AS godkjente «Godta tilbudet»", since);
   // …and the next client step became theirs.
   await waitForEmail(user.email, "Din tur: Signer avtalen", since);

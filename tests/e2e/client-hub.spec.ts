@@ -10,24 +10,26 @@ test("content phase: the first open item is the client's turn, the rest are list
   await loginAsClient(page, user.email);
   await expect(page.getByRole("heading", { level: 1, name: "Nettside for Innhold AS" })).toBeVisible();
 
-  const card = page.getByRole("region", { name: "Din tur" });
-  await expect(card.getByText("Last opp tekster", { exact: true })).toBeVisible();
+  const card = page.getByRole("region", { name: "Din tur: Last opp tekster" });
+  await expect(card).toBeVisible();
   await expect(card.getByText("3 ting til venter på deg:")).toBeVisible();
   for (const title of ["Last opp bilder", "Andre filer (valgfritt)", "Domene og tilganger"]) {
     await expect(card.getByRole("link", { name: title })).toBeVisible();
   }
 
   // Timeline: phase 3 is current and marked for assistive tech, not only visually.
-  const timeline = page.getByRole("region", { name: "Slik ligger vi an" });
+  const timeline = page.getByRole("list", { name: "Slik ligger vi an" });
   // Steps appear in the order the studio set.
   await expect(timeline.locator('li[aria-current="step"] ul a')).toHaveText([
     "Last opp logo", "Last opp tekster", "Last opp bilder", "Andre filer (valgfritt)", "Domene og tilganger",
   ]);
   const current = timeline.locator('li[aria-current="step"]');
   await expect(current).toHaveCount(1);
-  await expect(current).toContainText("Fase 3 av 8 · Pågår nå");
-  await expect(current).toContainText("Innhold");
-  await expect(timeline.getByText("Fase 1 av 8 · Fullført")).toBeVisible();
+  await expect(current.getByRole("button", { name: "Innhold" })).toHaveAttribute("aria-expanded", "true");
+  await expect(current.getByText("Pågår", { exact: true })).toBeVisible();
+  await expect(timeline.locator("li").filter({ has: page.getByRole("button", { name: "Tilbud" }) }).getByText("Fullført")).toBeVisible();
+  // Status is also in the page properties.
+  await expect(page.getByRole("definition").filter({ hasText: "Innhold (3 av 8)" })).toBeVisible();
 
   // The studio-only launch checklist never reaches the client.
   await expect(page.getByText("MX-poster")).toHaveCount(0);
@@ -45,9 +47,9 @@ test("waiting on the studio: no action, what we work on and when they hear from 
 
   await loginAsClient(page, user.email);
   await expect(page.getByRole("heading", { name: "Ingenting venter på deg nå" })).toBeVisible();
-  await expect(page.getByText("Vi jobber med sidekart og skisser.")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Ingenting venter på deg nå" }).getByText(/Vi jobber med sidekart og skisser\./)).toBeVisible();
   await expect(page.getByText("Du hører fra oss senest 14. mars 2030.")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Din tur" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: /^Din tur/ })).toHaveCount(0);
 });
 
 test("an open approval round becomes the client's turn", async ({ page }) => {
@@ -58,12 +60,12 @@ test("an open approval round becomes the client's turn", async ({ page }) => {
   await service.from("projects").update({ staging_url: "https://godkjenn-staging.example.com" }).eq("id", user.projectId);
 
   await loginAsClient(page, user.email);
-  const card = page.getByRole("region", { name: "Din tur" });
-  await expect(card.getByText("Godkjenn struktur", { exact: true })).toBeVisible();
+  const card = page.getByRole("region", { name: /^Din tur/ });
+  await expect(page.getByRole("region", { name: "Din tur: Godkjenn struktur" })).toBeVisible();
   await card.getByRole("link", { name: /Se og godkjenn/ }).click();
   await expect(page.getByRole("heading", { name: "Runde 1 av 2" })).toBeVisible();
   await expect(page.getByText("Sidekart og skisser er klare.")).toBeVisible();
 
   await page.getByRole("link", { name: "Til oversikten" }).click();
-  await expect(page.getByRole("link", { name: /Åpne testversjonen/ })).toHaveAttribute("href", "https://godkjenn-staging.example.com");
+  await expect(page.getByRole("link", { name: /Åpne forhåndsvisningen/ })).toHaveAttribute("href", "https://godkjenn-staging.example.com");
 });
