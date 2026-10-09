@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { LogoutButton } from "@/components/logout-button";
+import { NavLink } from "@/components/nav-link";
 import { requireAdmin } from "@/lib/auth/session";
 import { t } from "@/i18n/nb";
 
@@ -8,6 +9,25 @@ import { t } from "@/i18n/nb";
 async function AdminGate({ children }: { children: ReactNode }) {
   await requireAdmin();
   return children;
+}
+
+function NavLinks({ current }: { current: boolean }) {
+  const links = [
+    { href: "/studio", label: t.studio.nav.dashboard, exact: true },
+    { href: "/studio/clients", label: t.studio.nav.clients },
+    { href: "/studio/sikkerhet", label: t.studio.nav.security },
+  ];
+  return links.map((l) =>
+    current ? (
+      <NavLink key={l.href} href={l.href} exact={l.exact}>
+        {l.label}
+      </NavLink>
+    ) : (
+      <Link key={l.href} href={l.href}>
+        {l.label}
+      </Link>
+    ),
+  );
 }
 
 export default function AdminLayout({ children }: LayoutProps<"/studio">) {
@@ -18,9 +38,11 @@ export default function AdminLayout({ children }: LayoutProps<"/studio">) {
           <Link href="/studio" className="font-serif text-xl">
             {t.app.studioName}
           </Link>
-          <nav aria-label="Hovedmeny" className="flex items-center gap-6 text-sm">
-            <Link href="/studio">{t.studio.nav.dashboard}</Link>
-            <Link href="/studio/sikkerhet">{t.studio.nav.security}</Link>
+          <nav aria-label={t.studio.nav.label} className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {/* The current-page marker needs the URL, which is only known at request time. */}
+            <Suspense fallback={<NavLinks current={false} />}>
+              <NavLinks current />
+            </Suspense>
             <LogoutButton />
           </nav>
         </div>
