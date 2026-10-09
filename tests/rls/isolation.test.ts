@@ -266,7 +266,7 @@ describe("admin", () => {
 describe("anonymous and public handover", () => {
   it("anon gets nothing from any table", async () => {
     const client = anon();
-    for (const table of ["clients", "projects", "project_steps", "comments", "documents", "files", "change_requests"]) {
+    for (const table of ["clients", "projects", "project_steps", "comments", "documents", "files", "change_requests"] as const) {
       const { data, error } = await client.from(table).select("*");
       expect(error ? [] : data).toEqual([]);
     }

@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../../src/lib/db/types";
 
-export const service = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
+export const service = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 

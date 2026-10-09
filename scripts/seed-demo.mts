@@ -7,6 +7,7 @@
 // Log in at http://localhost:3000/logg-inn; the email arrives in Mailpit (http://127.0.0.1:54324).
 
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../src/lib/db/types";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const secretKey = process.env.SUPABASE_SECRET_KEY;
@@ -21,7 +22,7 @@ if (!/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(url)) {
   process.exit(1);
 }
 
-const db = createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
+const db = createClient<Database>(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
 // Throws on error. For writes without .select() the returned value is null and unused.
 function check<R extends { data: unknown; error: { message: string } | null }>(result: R, what: string): NonNullable<R["data"]> {

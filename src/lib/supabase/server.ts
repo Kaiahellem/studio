@@ -2,6 +2,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
+import type { Database } from "@/lib/db/types";
 import { publicEnv } from "@/lib/public-env";
 
 // Supabase client acting as the logged-in user. RLS always applies.
@@ -11,7 +12,7 @@ export async function createClient() {
   await connection();
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     publicEnv.NEXT_PUBLIC_SUPABASE_URL,
     publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {

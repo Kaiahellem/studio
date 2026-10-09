@@ -1,5 +1,6 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../../src/lib/db/types";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -14,10 +15,12 @@ if (!/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(url)) {
 
 const noPersist = { auth: { autoRefreshToken: false, persistSession: false } };
 
-export const service = createClient(url, secretKey, noPersist);
+export const service = createClient<Database>(url, secretKey, noPersist);
 
-export function anon(): SupabaseClient {
-  return createClient(url, publishableKey, noPersist);
+export type Db = SupabaseClient<Database>;
+
+export function anon(): Db {
+  return createClient<Database>(url, publishableKey, noPersist);
 }
 
 // Throws on error. For writes without .select() the returned value is null and unused.
@@ -34,7 +37,7 @@ export async function createUser(label: string): Promise<{ id: string; email: st
 }
 
 // Logs in the same way the app does (email OTP), without sending email or using a password.
-export async function signIn(email: string): Promise<SupabaseClient> {
+export async function signIn(email: string): Promise<Db> {
   const link = await service.auth.admin.generateLink({ type: "magiclink", email });
   if (link.error) throw new Error(`generateLink ${email}: ${link.error.message}`);
 
@@ -60,7 +63,7 @@ export function totp(base32Secret: string, now = Date.now()): string {
   return code.toString().padStart(6, "0");
 }
 
-export async function signInAdmin(email: string): Promise<SupabaseClient> {
+export async function signInAdmin(email: string): Promise<Db> {
   const client = await signIn(email);
   const enrolled = await client.auth.mfa.enroll({ factorType: "totp", friendlyName: `test-${randomUUID()}` });
   if (enrolled.error) throw new Error(`mfa.enroll: ${enrolled.error.message}`);
