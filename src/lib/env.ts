@@ -7,6 +7,8 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(16).optional(),
+  // Local development only: deliver notification emails to Mailpit instead of Resend.
+  MAILPIT_URL: z.url().optional(),
 });
 
 let cached: z.infer<typeof serverEnvSchema> | undefined;
@@ -17,6 +19,7 @@ export function serverEnv() {
     RESEND_API_KEY: process.env.RESEND_API_KEY || undefined,
     EMAIL_FROM: process.env.EMAIL_FROM || undefined,
     CRON_SECRET: process.env.CRON_SECRET || undefined,
+    MAILPIT_URL: process.env.MAILPIT_URL || undefined,
   });
   return cached;
 }
