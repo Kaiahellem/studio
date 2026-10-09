@@ -66,7 +66,11 @@ function StepItem({ step, isFirst, isLast, forms }: { step: Step; isFirst: boole
     <li className="py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className={`font-medium ${finished ? "text-muted line-through decoration-1" : ""}`}>{step.title}</p>
+          <p className={`font-medium ${finished ? "text-muted line-through decoration-1" : ""}`}>
+            <Link href={`/studio/projects/${step.project_id}/steps/${step.id}`} className="underline-offset-4 hover:underline">
+              {step.title}
+            </Link>
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Badge tone={step.status === "active" ? "accent" : step.status === "done" ? "success" : "muted"}>
               {labels.stepStatus[step.status]}

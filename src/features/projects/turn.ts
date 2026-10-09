@@ -41,7 +41,7 @@ export function projectGroup(
   return allFinished ? "done" : "studio";
 }
 
-type RoundRow = { round: number; approvals: { id: string } | null };
+type RoundRow = { round: number; approvals: object | null };
 
 function latestRound(rounds: RoundRow[]): TurnStep["latestRound"] {
   if (rounds.length === 0) return null;
