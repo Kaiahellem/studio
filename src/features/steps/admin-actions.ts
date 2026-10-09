@@ -10,6 +10,7 @@ import { checkbox, firstError, formObject, optionalDate, optionalText, optionalU
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { t } from "@/i18n/nb";
+import { notifyClientTurnsForStep, schedule } from "@/features/notifications/notify";
 
 const s = t.studio.step;
 const d = t.studio.documents;
@@ -36,6 +37,7 @@ export async function openRoundAction(stepId: string, _prev: FormState, formData
     if (error.message.includes("not active")) return { error: s.notActive };
     return { error: t.studio.errors.generic };
   }
+  schedule(() => notifyClientTurnsForStep(uuid.parse(stepId)));
   refresh();
   return { message: s.roundOpened(data) };
 }

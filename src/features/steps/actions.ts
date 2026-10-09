@@ -12,6 +12,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { t } from "@/i18n/nb";
 import { getUploadSettings } from "./settings";
+import {
+  notifyApproval,
+  notifyClientTurnsForStep,
+  notifyComment,
+  notifyFormSubmitted,
+  notifyUpload,
+  schedule,
+} from "@/features/notifications/notify";
 
 const c = t.client;
 
@@ -29,8 +37,13 @@ function fail(error: { message: string } | null): FormState | undefined {
 export async function approveAction(stepId: string): Promise<FormState> {
   await requireUser();
   const supabase = await createClient();
-  const { error } = await supabase.rpc("submit_approval", { p_step_id: uuid.parse(stepId), p_decision: "approved" });
+  const id = uuid.parse(stepId);
+  const { error } = await supabase.rpc("submit_approval", { p_step_id: id, p_decision: "approved" });
   if (error) return fail(error);
+  schedule(async () => {
+    await notifyApproval(id, "approved", false);
+    await notifyClientTurnsForStep(id);
+  });
   refresh();
   return { message: c.approval.approvedThanks };
 }
@@ -40,12 +53,15 @@ export async function requestChangesAction(stepId: string, _prev: FormState, for
   const comment = z.string().trim().min(1).max(10_000).safeParse(formData.get("comment"));
   if (!comment.success) return { error: c.approval.changesRequired };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("submit_approval", {
-    p_step_id: uuid.parse(stepId),
+  const id = uuid.parse(stepId);
+  const { data, error } = await supabase.rpc("submit_approval", {
+    p_step_id: id,
     p_decision: "changes_requested",
     p_comment: comment.data,
   });
   if (error) return fail(error);
+  const usedUp = Boolean((data as { rounds_used_up?: boolean } | null)?.rounds_used_up);
+  schedule(() => notifyApproval(id, "changes_requested", usedUp));
   refresh();
   return { message: c.approval.changesThanks };
 }
@@ -78,6 +94,10 @@ export async function saveFormAction(stepId: string, _prev: FormStepState, formD
     if (Object.keys(fieldErrors).length > 0) return { error: t.forms.fixErrors, fieldErrors, answers };
     const { error } = await supabase.rpc("submit_form", { p_step_id: id, p_answers: answers });
     if (error) return { ...fail(error), answers };
+    schedule(async () => {
+      await notifyFormSubmitted(id);
+      await notifyClientTurnsForStep(id);
+    });
     refresh();
     return undefined;
   }
@@ -141,6 +161,7 @@ export async function registerUploadAction(
     console.error("register_upload failed:", error.message);
     return { ok: false };
   }
+  schedule(() => notifyUpload(uuid.parse(stepId)));
   refresh();
   return { ok: true };
 }
@@ -163,8 +184,10 @@ export async function removeUploadAction(fileId: string): Promise<FormState> {
 export async function completeClientStepAction(stepId: string): Promise<FormState> {
   await requireUser();
   const supabase = await createClient();
-  const { error } = await supabase.rpc("complete_client_step", { p_step_id: uuid.parse(stepId) });
+  const id = uuid.parse(stepId);
+  const { error } = await supabase.rpc("complete_client_step", { p_step_id: id });
   if (error) return fail(error);
+  schedule(() => notifyClientTurnsForStep(id));
   refresh();
   return { message: c.step.markedDone };
 }
@@ -194,15 +217,16 @@ export async function addCommentAction(
     : await supabase.from("change_requests").select("project_id").eq("id", changeRequestId ?? "").single();
   if (parent.error) return fail(parent.error);
 
-  const { error } = await supabase.from("comments").insert({
+  const { data: comment, error } = await supabase.from("comments").insert({
     step_id: stepId,
     change_request_id: changeRequestId,
     project_id: parent.data.project_id,
     author_id: user.id,
     body: body.data,
     internal,
-  });
+  }).select("id").single();
   if (error) return fail(error);
+  schedule(() => notifyComment(comment.id));
   refresh();
   return { message: c.comments.sent };
 }

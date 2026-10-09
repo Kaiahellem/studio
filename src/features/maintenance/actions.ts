@@ -14,6 +14,7 @@ import { checkbox, firstError, formObject, optionalDate, optionalText, requiredT
 import { createClient } from "@/lib/supabase/server";
 import { getUploadSettings } from "@/features/steps/settings";
 import { t } from "@/i18n/nb";
+import { checkHours, notifyNewRequest, notifyRequestStatus, schedule } from "@/features/notifications/notify";
 
 const cr = t.client.requests;
 const sr = t.studio.requests;
@@ -58,6 +59,7 @@ export async function createRequestAction(projectId: string, _prev: FormState, f
     .select("id")
     .single();
   if (created.error) return { error: t.client.step.notAllowed };
+  schedule(() => notifyNewRequest(created.data.id));
   redirect(`/p/${project.data.id}/endringer/${created.data.id}?sendt=1`);
 }
 
@@ -109,8 +111,17 @@ export async function updateRequestAction(requestId: string, _prev: FormState, f
   const parsed = triageSchema.safeParse(formObject(formData, ["status", "billing", "estimate_minutes"]));
   if (!parsed.success) return { error: firstError(parsed.error) };
   const supabase = await createClient();
-  const { error } = await supabase.from("change_requests").update(parsed.data).eq("id", uuid.parse(requestId));
-  if (error) return { error: t.studio.errors.generic };
+  const id = uuid.parse(requestId);
+  const before = await supabase.from("change_requests").select("status, project_id").eq("id", id).single();
+  const { error } = await supabase.from("change_requests").update(parsed.data).eq("id", id);
+  if (error || !before.data) return { error: t.studio.errors.generic };
+  const previous = before.data.status;
+  const projectId = before.data.project_id;
+  schedule(async () => {
+    await notifyRequestStatus(id, previous);
+    // A change of billing can move time into or out of the allowance.
+    await checkHours(projectId);
+  });
   refresh();
   return { message: sr.saved };
 }
@@ -126,6 +137,11 @@ export async function addRequestTimeAction(requestId: string, _prev: FormState, 
   const parsed = timeSchema.safeParse(formObject(formData, ["minutes", "entry_date", "description"]));
   if (!parsed.success || !parsed.data.minutes) return { error: parsed.success ? sr.invalidDuration : firstError(parsed.error) };
   const supabase = await createClient();
+  const request = await supabase.from("change_requests").select("project_id").eq("id", uuid.parse(requestId)).single();
+  if (request.data) {
+    const projectId = request.data.project_id;
+    schedule(() => checkHours(projectId));
+  }
   const { error } = await supabase.from("time_entries").insert({
     change_request_id: uuid.parse(requestId),
     minutes: parsed.data.minutes,
@@ -173,6 +189,7 @@ export async function addLogAction(projectId: string, _prev: FormState, formData
     p_minutes: v.minutes ?? undefined,
   });
   if (error) return { error: t.studio.errors.generic };
+  schedule(() => checkHours(uuid.parse(projectId)));
   refresh();
   return { message: t.studio.maintenance.added };
 }

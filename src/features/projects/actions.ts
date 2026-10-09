@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { checkbox, firstError, formObject, optionalDate, optionalText, optionalUrl, requiredText, uuid } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { t } from "@/i18n/nb";
+import { notifyClientTurns, notifyClientTurnsForStep, schedule } from "@/features/notifications/notify";
 
 const p = t.studio.projects;
 
@@ -54,6 +55,7 @@ export async function createProjectAction(_prev: FormState, formData: FormData):
     p_target_launch_date: v.target_launch_date ?? undefined,
   });
   if (error || !data) return { error: t.studio.errors.generic };
+  schedule(() => notifyClientTurns(data));
   redirect(`/studio/projects/${data}`);
 }
 
@@ -174,9 +176,12 @@ export async function addStepAction(phaseId: string, _prev: FormState, formData:
   if (!parsed.success) return { error: firstError(parsed.error) };
   const v = parsed.data;
   const supabase = await createClient();
+  const phase = uuid.parse(phaseId);
+  const { data: phaseRow } = await supabase.from("project_phases").select("project_id").eq("id", phase).single();
+  if (phaseRow) schedule(() => notifyClientTurns(phaseRow.project_id));
   return rpcResult(
     supabase.rpc("add_step", {
-      p_phase_id: uuid.parse(phaseId),
+      p_phase_id: phase,
       p_title: v.title,
       p_owner: v.owner,
       p_type: v.type,
@@ -194,8 +199,11 @@ export async function updateStepAction(stepId: string, _prev: FormState, formDat
   const parsed = stepSchema.safeParse(formObject(formData, stepKeys));
   if (!parsed.success) return { error: firstError(parsed.error) };
   const supabase = await createClient();
-  const { error } = await supabase.from("project_steps").update(parsed.data).eq("id", uuid.parse(stepId));
+  const id = uuid.parse(stepId);
+  const { error } = await supabase.from("project_steps").update(parsed.data).eq("id", id);
   if (error) return { error: t.studio.errors.generic };
+  // A step can become the client's (owner or visibility changed).
+  schedule(() => notifyClientTurnsForStep(id));
   refresh();
   return { message: t.studio.clients.saved };
 }
@@ -203,13 +211,19 @@ export async function updateStepAction(stepId: string, _prev: FormState, formDat
 export async function completeStepAction(stepId: string, skip: boolean): Promise<FormState> {
   await requireAdmin();
   const supabase = await createClient();
-  return rpcResult(supabase.rpc("complete_step", { p_step_id: uuid.parse(stepId), p_skip: skip }));
+  const id = uuid.parse(stepId);
+  const result = await rpcResult(supabase.rpc("complete_step", { p_step_id: id, p_skip: skip }));
+  if (!result?.error) schedule(() => notifyClientTurnsForStep(id));
+  return result;
 }
 
 export async function reopenStepAction(stepId: string): Promise<FormState> {
   await requireAdmin();
   const supabase = await createClient();
-  return rpcResult(supabase.rpc("reopen_step", { p_step_id: uuid.parse(stepId) }));
+  const id = uuid.parse(stepId);
+  const result = await rpcResult(supabase.rpc("reopen_step", { p_step_id: id }));
+  if (!result?.error) schedule(() => notifyClientTurnsForStep(id));
+  return result;
 }
 
 export async function moveStepAction(stepId: string, direction: number): Promise<FormState> {
