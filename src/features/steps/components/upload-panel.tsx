@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useRef, useState, type DragEvent } from "react";
-import { createUploadAction, registerUploadAction } from "@/features/steps/actions";
 import { formatBytes } from "@/lib/format/file";
 import { createClient } from "@/lib/supabase/browser";
 import { t } from "@/i18n/nb";
@@ -9,18 +8,21 @@ import { t } from "@/i18n/nb";
 const u = t.client.upload;
 
 type Status = { kind: "busy" | "ok" | "error"; text: string };
+type FileInfo = { name: string; size: number; type: string };
+type Ticket = { ok: true; path: string; token: string } | { ok: false; error?: string };
 
 // Drag-and-drop or file picker. Each file goes straight to Storage through a signed URL
 // (so large files never pass through the app server), then gets registered on the step.
 export function UploadPanel({
-  projectId,
-  stepId,
+  create,
+  register,
   maxBytes,
   allowedTypes,
   acceptHint,
 }: {
-  projectId: string;
-  stepId: string;
+  // Server actions, bound to the step or project: create a signed URL, then record the file.
+  create: (file: FileInfo) => Promise<Ticket>;
+  register: (file: FileInfo & { path: string }) => Promise<{ ok: boolean }>;
   maxBytes: number;
   allowedTypes: string[];
   acceptHint?: string[];
@@ -38,7 +40,7 @@ export function UploadPanel({
     if (file.size > maxBytes) return set({ kind: "error", text: u.tooLarge(file.name, formatBytes(maxBytes)) });
     if (!allowedTypes.includes(type)) return set({ kind: "error", text: u.wrongType(file.name) });
 
-    const ticket = await createUploadAction(projectId, stepId, { name: file.name, size: file.size, type });
+    const ticket = await create({ name: file.name, size: file.size, type });
     if (!ticket.ok) {
       return set({ kind: "error", text: ticket.error === "too_large" ? u.tooLarge(file.name, formatBytes(maxBytes)) : ticket.error === "wrong_type" ? u.wrongType(file.name) : u.failed(file.name) });
     }
@@ -46,7 +48,7 @@ export function UploadPanel({
     const { error } = await createClient().storage.from("project-files").uploadToSignedUrl(ticket.path, ticket.token, file, { contentType: type });
     if (error) return set({ kind: "error", text: u.failed(file.name) });
 
-    const registered = await registerUploadAction(stepId, { path: ticket.path, name: file.name, size: file.size, type });
+    const registered = await register({ path: ticket.path, name: file.name, size: file.size, type });
     set(registered.ok ? { kind: "ok", text: u.uploaded(file.name) } : { kind: "error", text: u.failed(file.name) });
   }
 

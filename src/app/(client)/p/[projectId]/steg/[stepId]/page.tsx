@@ -5,7 +5,7 @@ import { ActionButton } from "@/components/form";
 import { getStepForClient } from "@/features/hub/queries";
 import { displayAnswer, parseDefinition, type Answers } from "@/features/forms/schema";
 import { stepTurn, toTurnStep } from "@/features/projects/turn";
-import { completeClientStepAction } from "@/features/steps/actions";
+import { completeClientStepAction, createUploadAction, registerUploadAction } from "@/features/steps/actions";
 import { ApprovalPanel } from "@/features/steps/components/approval-panel";
 import { CommentThread } from "@/features/steps/components/comments";
 import { FileList } from "@/features/steps/components/file-list";
@@ -150,8 +150,8 @@ export default async function StepPage({ params }: PageProps<"/p/[projectId]/ste
         <section aria-labelledby="files-heading" className="flex flex-col gap-6">
           {active && (
             <UploadPanel
-              projectId={projectId}
-              stepId={step.id}
+              create={createUploadAction.bind(null, projectId, step.id)}
+              register={registerUploadAction.bind(null, step.id)}
               maxBytes={uploadSettings.maxBytes}
               allowedTypes={uploadSettings.allowedTypes}
               acceptHint={config?.accept}

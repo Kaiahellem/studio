@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NextActionCard, Timeline } from "@/features/hub/components";
 import { nextForClient } from "@/features/hub/next-action";
@@ -13,7 +14,9 @@ export const metadata: Metadata = { title: c.projectsTitle };
 export default async function ProjectOverviewPage({ params }: PageProps<"/p/[projectId]">) {
   const { projectId } = await params;
   if (!uuid.safeParse(projectId).success) notFound();
-  const { project, phases, firstName } = await getProjectOverview(projectId);
+  const { project, phases, firstName, hasHandover } = await getProjectOverview(projectId);
+  const liveUrl = project.live_url && /^https?:\/\//i.test(project.live_url) ? project.live_url : null;
+  const cmsUrl = project.cms_url && /^https?:\/\//i.test(project.cms_url) ? project.cms_url : null;
   const next = nextForClient(phases);
 
   return (
@@ -25,9 +28,48 @@ export default async function ProjectOverviewPage({ params }: PageProps<"/p/[pro
         <h1 className="font-serif text-4xl leading-tight tracking-tight sm:text-5xl">{project.name}</h1>
       </header>
 
+      {/* After launch: the live site and the CMS come first (BRIEF.md, "After launch"). */}
+      {liveUrl && (
+        <section aria-labelledby="live-heading" className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-6 sm:p-8">
+          <h2 id="live-heading" className="font-serif text-3xl">
+            {c.liveSite.heading}
+          </h2>
+          <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="break-all text-lg underline underline-offset-4 hover:no-underline">
+            {liveUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+            <span aria-hidden="true">&nbsp;↗</span>
+            <span className="sr-only"> {c.newTab}</span>
+          </a>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {cmsUrl && (
+              <a
+                href={cmsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-describedby="cms-hint"
+                className="inline-flex h-12 items-center justify-center rounded-md bg-accent px-6 font-medium text-accent-ink hover:opacity-90"
+              >
+                {c.liveSite.edit}
+                <span aria-hidden="true">&nbsp;↗</span>
+              </a>
+            )}
+            {hasHandover && (
+              <Link href={`/p/${project.id}/overlevering`} className="inline-flex h-12 items-center justify-center rounded-md border border-field-border px-6 font-medium hover:bg-paper">
+                {c.liveSite.handover}
+              </Link>
+            )}
+          </div>
+          {cmsUrl && (
+            <p id="cms-hint" className="text-sm text-muted">
+              {c.liveSite.editHint}
+            </p>
+          )}
+        </section>
+      )}
+
       <NextActionCard projectId={project.id} next={next} />
 
-      {project.staging_url && (
+      {/* The test version is for the build; after launch the live site replaces it. */}
+      {project.staging_url && !liveUrl && (
         <section aria-labelledby="staging-heading" className="border-y border-line py-6">
           <h2 id="staging-heading" className="mb-1 font-serif text-2xl">
             {c.staging.heading}

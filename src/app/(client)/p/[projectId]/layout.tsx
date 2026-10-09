@@ -10,6 +10,7 @@ function ProjectNav({ projectId, current }: { projectId: string; current: boolea
     { href: `/p/${projectId}`, label: n.overview, exact: true },
     { href: `/p/${projectId}/dokumenter`, label: n.documents },
     { href: `/p/${projectId}/filer`, label: n.files },
+    { href: `/p/${projectId}/overlevering`, label: n.handover },
   ];
   return links.map((l) =>
     current ? (

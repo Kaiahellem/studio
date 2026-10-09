@@ -10,6 +10,8 @@ function ProjectNav({ projectId, current }: { projectId: string; current: boolea
   const links = [
     { href: base, label: n.steps, exact: true },
     { href: `${base}/documents`, label: n.documents },
+    { href: `${base}/site`, label: n.site },
+    { href: `${base}/handover`, label: n.handover },
     { href: `${base}/activity`, label: n.activity },
   ];
   return links.map((l) =>

@@ -9,6 +9,10 @@ import type { HubPhase, HubStep } from "./next-action";
 // Client-side reads. Everything goes through RLS as the logged-in client, so hidden steps,
 // internal comments and other clients' data are never returned.
 
+export async function requireClientAccess(next: string) {
+  return requireClient(next);
+}
+
 async function requireClient(next: string) {
   const user = await requireUser(next);
   // Admins see hidden content through RLS, so the client view would be misleading for them.
@@ -35,7 +39,7 @@ export async function getProjectOverview(projectId: string) {
   const user = await requireClient(`/p/${projectId}`);
   const supabase = await createClient();
 
-  const [project, phases, profile] = await Promise.all([
+  const [project, phases, profile, handover] = await Promise.all([
     supabase
       .from("projects")
       .select("id, name, status, staging_url, live_url, cms_url, target_launch_date, clients(name)")
@@ -50,6 +54,8 @@ export async function getProjectOverview(projectId: string) {
       .order("position")
       .order("position", { referencedTable: "project_steps" }),
     supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle(),
+    // RLS only returns a published page.
+    supabase.from("handover_pages").select("id").eq("project_id", projectId).maybeSingle(),
   ]);
   if (project.error) throw project.error;
   if (phases.error) throw phases.error;
@@ -74,7 +80,12 @@ export async function getProjectOverview(projectId: string) {
     ),
   }));
 
-  return { project: project.data, phases: hubPhases, firstName: firstName(profile.data?.full_name) };
+  return {
+    project: project.data,
+    phases: hubPhases,
+    firstName: firstName(profile.data?.full_name),
+    hasHandover: Boolean(handover.data),
+  };
 }
 
 export async function getStepForClient(projectId: string, stepId: string) {
