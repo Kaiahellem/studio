@@ -31,7 +31,7 @@ Hosted resources you create (I can't create these for you):
 | Decision | Choice | Why |
 |---|---|---|
 | Scheduled jobs | **Vercel Cron**: one daily job (`/api/cron/daily`, 07:00 Europe/Oslo) protected by `CRON_SECRET` | Every email goes through Resend with templates and strings from the Next.js codebase. With pg_cron, the database would need `pg_net` to call Resend or call back into the app, so the email logic would live in two places. Daily runs are enough: reminders are counted in days, and renewals in weeks. Urgent emails are sent straight from the server action, not by cron. |
-| Login | **Magic link for everyone, me included**; public sign-up turned off (`shouldCreateUser: false`) | One flow and less attack surface. Only invited users can log in. Passwords can be added later if you want them. |
+| Login | **Email with a link + a 6-digit code**, no passwords; admin also gets **TOTP**. Public sign-up turned off (`shouldCreateUser: false`). See §1.1. | One flow that works across devices and browsers and holds up against link scanners. Only invited users can log in. |
 | Auth emails | Supabase **custom SMTP via Resend** | Login and invite emails come from your domain, not Supabase's rate-limited default sender. |
 | Admin role | `admins` table + `is_admin()` SQL function | Easy to inspect and test. Revoking takes effect immediately; a JWT claim would stay valid until the token refreshes. |
 | Client state transitions | **Postgres functions (RPC, `security definer`)** for approve, submit form, complete upload step and the site-details form | The rule check, status change, approval record and activity log happen in **one transaction**. Clients get no direct `UPDATE` on steps. Server actions check the role first and then call the RPC (two layers of checks). |
@@ -39,6 +39,27 @@ Hosted resources you create (I can't create these for you):
 | File uploads | Server action checks role, step, size and type → **signed upload URL** → browser uploads directly to Storage → RPC registers the file | Avoids Vercel's ~4.5 MB request body limit. File limits are also enforced on the bucket itself. |
 | Template data | Website template, questionnaire and default maintenance plan as a **data migration** (exists in production). Demo client, project and users in a **dev-only seed script**. | Production needs the template; it must not get demo users. |
 | Admin UI language | Norwegian too, from the same dictionary (`src/i18n/nb.ts`) | One place for all strings. URL segments: Norwegian on the client side, English under `/studio` (only you see those). |
+
+### 1.1 Login in detail
+
+**Why not a plain magic link:** (1) on mobile the link often opens in the mail app's built-in browser, so the session ends up in the wrong browser; (2) Outlook Safe Links and corporate scanners open links before the user does and use up the one-time token ("lenken er utløpt"); (3) the email is read on one device while the client wants in on another.
+
+**Flow:**
+1. `/logg-inn`: the user enters their email → `signInWithOtp({ email, options: { shouldCreateUser: false } })`. The page always gives the same response ("Sjekk e-posten din"), whether or not the address exists, so nobody can find out which emails have accounts.
+2. One email (custom Supabase template, sent through Resend) contains **both** a link and a 6-digit code (`{{ .TokenHash }}` and `{{ .Token }}`).
+3. **The link** goes to `/auth/confirm?token_hash=…&next=…`. A `GET` shows only a page with a "Logg inn" button; the **`POST`** runs `verifyOtp({ token_hash, type: 'email' })`. Scanners never post, so the token survives. The flow uses `token_hash`, not the PKCE code exchange, so it works in any browser on any device.
+4. **The code** is entered on `/logg-inn/kode` → `verifyOtp({ email, token, type: 'email' })`. One field with `inputmode="numeric"` and `autocomplete="one-time-code"` (so the phone can suggest the code), a proper `<label>`, and error messages tied to the field with `aria-describedby` and announced through `role="alert"`.
+5. The code and link are valid for 1 hour. Supabase's rate limit applies, plus "Send ny kode" with a 60-second cooldown.
+
+**Sessions:** a long-lived refresh token, so clients stay logged in for about 90 days without activity (configured as Supabase's inactivity timeout). The session is refreshed in `middleware.ts`.
+
+**Deep links:** every link in an email goes to the right place in the hub. If the user is logged out, the middleware sends them to `/logg-inn?next=<path>`. `next` is validated (relative path only, never another host) and carried through both the link and the code flow.
+
+**Admin MFA:** after logging in with the email code or link, the admin must also enter a **TOTP** code (Supabase MFA, AAL2). Set up in `/studio/sikkerhet` the first time. `requireAdmin()` and the RLS function `is_admin()` both require `aal2` (`auth.jwt() ->> 'aal' = 'aal2'`), so a stolen email session does not give admin access to the database either. Recovery: two TOTP factors (for example a phone + 1Password). Last resort: reset the factor through the Supabase dashboard.
+
+**Invites:** the admin invites a user from the client page; the server (service role) runs `auth.admin.createUser({ email, email_confirm: true })`, adds the `client_members` row and sends a welcome email through Resend with a link to `/logg-inn?email=…`. The user then logs in with the normal flow, so there is no separate invite token to expire.
+
+**Considered and dropped:** passwords (forgotten and reused, plus a reset flow to maintain); Google/Microsoft login (small businesses often use email from their web host); passkeys (can be added later as an extra option).
 
 ---
 
@@ -99,7 +120,7 @@ Changes from the brief are marked **(new)** or **(changed)**.
 
 RLS is **enabled on every table**, with no `public`/`anon` grants. Helper functions are `security definer stable`, `search_path = ''`:
 
-- `is_admin()` → there is a row in `admins` for `auth.uid()`
+- `is_admin()` → there is a row in `admins` for `auth.uid()` **and** the session is `aal2` (TOTP verified, §1.1)
 - `is_member(client_id)` → there is a row in `client_members` for `auth.uid()`
 - `project_client(project_id)` / `step_project(step_id)` → small lookups used in policies
 
@@ -155,6 +176,7 @@ Users are created with the admin API and log in through `generateLink` + `verify
 - A cannot update or delete `approvals`. Admin cannot either, outside of purge.
 - A can run `agreement_usage` for their own agreement only.
 - `get_public_handover` returns nothing when `public_enabled = false` or the token is wrong.
+- An admin user with only `aal1` (no TOTP verified) gets client-level access at most, not admin access.
 - Anon gets nothing from any table.
 
 ---
@@ -214,8 +236,10 @@ studio/
 ### Public
 | Route | Purpose |
 |---|---|
-| `/logg-inn` | Email field → magic link. Links to the privacy notice. |
-| `/auth/confirm` | Verifies the link, then sends the user on (admin → `/studio`, client → hub) |
+| `/logg-inn` | Email field → email with a link and a code. Links to the privacy notice. |
+| `/logg-inn/kode` | Enter the 6-digit code |
+| `/auth/confirm` | GET: "Logg inn" button · POST: verifies `token_hash`, then sends the user on (`next`, or admin → `/studio/mfa`, client → hub) |
+| `/studio/mfa` | Enter the TOTP code (admin, after the email step) |
 | `/personvern` | Privacy notice (placeholder text) |
 | `/overlevering/[token]` | Public handover page (only when you've turned the link on) |
 
@@ -245,6 +269,7 @@ studio/
 | `/studio/change-requests`, `/[id]` | Triage, time entries |
 | `/studio/plans` | Maintenance plans |
 | `/studio/settings` | Reminder interval, upload limits |
+| `/studio/sikkerhet` | Set up and manage TOTP factors |
 
 ### Route handlers
 - `GET /api/cron/daily`: Vercel Cron with `Authorization: Bearer CRON_SECRET`. Runs step reminders, renewals within 30 days and the 80 % hours check, with deduplication through `email_log`.
@@ -297,7 +322,7 @@ Implied by the stack: `next`, `react`, `@supabase/supabase-js`, `@supabase/ssr`,
 
 1. Scaffold Next.js (TypeScript strict, App Router, Tailwind, ESLint), shadcn init, `nb.ts`, format helpers + unit tests.
 2. `supabase init`, migrations: enums → tables → helpers → RLS → RPC → triggers → template data.
-3. Auth: login, confirm, middleware, guards, custom SMTP (you fill in the Resend key).
+3. Auth as in §1.1: email with link + code, confirm page with button, `next` deep links, admin TOTP, middleware, guards, email template, custom SMTP (you fill in the Resend key).
 4. `seed-demo.ts`: admin (your email), demo client "Fjordlys Rør AS" with 2 users, project in the Content phase.
 5. RLS tests + `pnpm lint && pnpm typecheck && pnpm test` green.
 6. Small commits along the way, then a summary.
