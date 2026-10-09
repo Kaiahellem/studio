@@ -18,7 +18,7 @@ import { CopyButton } from "@/features/handover/copy-button";
 import { getHandoverForAdmin } from "@/features/handover/queries";
 import { UploadPanel } from "@/features/steps/components/upload-panel";
 import { getUploadSettings } from "@/features/steps/settings";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { publicEnv } from "@/lib/public-env";
 import { t } from "@/i18n/nb";

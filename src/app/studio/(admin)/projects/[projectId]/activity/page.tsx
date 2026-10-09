@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Empty, PageHeader } from "@/components/ui";
 import { getActivity } from "@/features/steps/admin-queries";
-import { formatDateTime } from "@/lib/format/date";
+import { formatDateTime } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

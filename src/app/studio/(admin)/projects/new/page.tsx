@@ -4,7 +4,7 @@ import { ActionForm, Field, Select } from "@/components/form";
 import { PageHeader } from "@/components/ui";
 import { createProjectAction } from "@/features/projects/actions";
 import { getNewProjectOptions } from "@/features/projects/queries";
-import { todayInOslo } from "@/lib/format/date";
+import { todayInOslo } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const p = t.studio.projects;

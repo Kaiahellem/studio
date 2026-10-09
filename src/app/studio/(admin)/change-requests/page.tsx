@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Badge, Empty, PageHeader, Section } from "@/components/ui";
 import { RequestStatus } from "@/features/maintenance/components";
 import { getRequestsForAdmin } from "@/features/maintenance/queries";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const s = t.studio.requests;

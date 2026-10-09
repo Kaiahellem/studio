@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import { buttonClass } from "@/components/ui";
 import { HoursMeter } from "@/features/maintenance/components";
 import { getMaintenanceForClient } from "@/features/maintenance/queries";
-import { formatDate, formatMonth, todayInOslo } from "@/lib/format/date";
-import { formatMinutes, formatOre } from "@/lib/format/money";
+import { formatDate, formatMinutes, formatMonth, formatOre, todayInOslo } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

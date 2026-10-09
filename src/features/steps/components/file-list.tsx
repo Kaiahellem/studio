@@ -1,6 +1,6 @@
 import { ActionButton } from "@/components/form";
 import { removeUploadAction } from "@/features/steps/actions";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { formatBytes } from "@/lib/format/file";
 import { t } from "@/i18n/nb";
 

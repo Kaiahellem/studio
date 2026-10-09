@@ -12,7 +12,7 @@ import { FileList } from "@/features/steps/components/file-list";
 import { FormStep } from "@/features/steps/components/form-step";
 import { UploadPanel } from "@/features/steps/components/upload-panel";
 import { getUploadSettings } from "@/features/steps/settings";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

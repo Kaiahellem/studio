@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { buttonClass } from "@/components/ui";
 import { RequestStatus } from "@/features/maintenance/components";
 import { getRequestsForClient } from "@/features/maintenance/queries";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui";
 import { getDocumentsForClient } from "@/features/hub/queries";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

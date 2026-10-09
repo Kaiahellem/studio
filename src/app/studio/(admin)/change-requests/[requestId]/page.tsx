@@ -8,8 +8,7 @@ import { RequestStatus } from "@/features/maintenance/components";
 import { getRequestForAdmin } from "@/features/maintenance/queries";
 import { CommentThread } from "@/features/steps/components/comments";
 import { FileList } from "@/features/steps/components/file-list";
-import { formatDate, formatDateTime, todayInOslo } from "@/lib/format/date";
-import { formatMinutes } from "@/lib/format/money";
+import { formatDate, formatDateTime, formatMinutes, todayInOslo } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

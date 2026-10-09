@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge, Empty, PageHeader, Section, buttonClass } from "@/components/ui";
 import { getDashboard, type DashboardProject } from "@/features/projects/queries";
-import { formatDate } from "@/lib/format/date";
-import { formatMinutes } from "@/lib/format/money";
+import { formatDate, formatMinutes } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 export const metadata: Metadata = { title: t.studio.dashboardTitle };

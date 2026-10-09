@@ -1,7 +1,7 @@
 import "server-only";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { todayInOslo } from "@/lib/format/date";
+import { todayInOslo } from "@/lib/format/nb";
 import { projectGroup, stepTurn, toTurnStep, type ProjectGroup, type TurnStep } from "./turn";
 
 type StepRow = {

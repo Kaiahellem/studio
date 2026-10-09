@@ -1,4 +1,4 @@
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { formatBytes } from "@/lib/format/file";
 import { t } from "@/i18n/nb";
 import { inkOn, readContent, type SectionKind } from "./content";

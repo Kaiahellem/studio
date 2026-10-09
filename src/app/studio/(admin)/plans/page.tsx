@@ -3,7 +3,7 @@ import { ActionForm, Checkbox, Field, TextArea } from "@/components/form";
 import { Badge, Empty, PageHeader, Section } from "@/components/ui";
 import { savePlanAction } from "@/features/maintenance/actions";
 import { listPlans } from "@/features/maintenance/queries";
-import { formatMinutes, formatOre } from "@/lib/format/money";
+import { formatMinutes, formatOre } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const p = t.studio.plans;

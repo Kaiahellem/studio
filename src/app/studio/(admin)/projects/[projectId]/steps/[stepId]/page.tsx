@@ -10,7 +10,7 @@ import { openRoundAction } from "@/features/steps/admin-actions";
 import { getStepForAdmin } from "@/features/steps/admin-queries";
 import { CommentThread } from "@/features/steps/components/comments";
 import { FileList } from "@/features/steps/components/file-list";
-import { formatDate, formatDateTime } from "@/lib/format/date";
+import { formatDate, formatDateTime } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

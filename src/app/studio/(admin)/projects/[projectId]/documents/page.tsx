@@ -5,7 +5,7 @@ import { ActionButton, ActionForm } from "@/components/form";
 import { Badge, Empty, PageHeader, Section } from "@/components/ui";
 import { deleteDocumentAction, updateDocumentAction } from "@/features/steps/admin-actions";
 import { getDocumentsForAdmin } from "@/features/steps/admin-queries";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 import { AddDocumentForm, DocumentFields } from "./document-fields";

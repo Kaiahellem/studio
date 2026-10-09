@@ -9,8 +9,7 @@ import { CommentThread } from "@/features/steps/components/comments";
 import { FileList } from "@/features/steps/components/file-list";
 import { UploadPanel } from "@/features/steps/components/upload-panel";
 import { getUploadSettings } from "@/features/steps/settings";
-import { formatDate } from "@/lib/format/date";
-import { formatMinutes } from "@/lib/format/money";
+import { formatDate, formatMinutes } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 

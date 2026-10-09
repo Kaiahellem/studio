@@ -19,7 +19,7 @@ import {
 } from "@/features/projects/actions";
 import { getProjectForEditing } from "@/features/projects/queries";
 import { stepTurn, toTurnStep } from "@/features/projects/turn";
-import { formatDate } from "@/lib/format/date";
+import { formatDate } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 import { StepFields } from "./step-fields";

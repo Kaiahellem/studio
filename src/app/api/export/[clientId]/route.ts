@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { buildClientExport } from "@/features/privacy/export";
 import { getSessionUser, isAdminAccount } from "@/lib/auth/session";
 import { safeFileName } from "@/lib/format/file";
-import { todayInOslo } from "@/lib/format/date";
+import { todayInOslo } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 

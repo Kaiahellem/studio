@@ -3,8 +3,7 @@ import { Badge, Empty, Section } from "@/components/ui";
 import { saveAgreementAction } from "@/features/maintenance/actions";
 import { HoursMeter } from "@/features/maintenance/components";
 import { getAgreementsForClient } from "@/features/maintenance/queries";
-import { formatDate, formatMonth, todayInOslo } from "@/lib/format/date";
-import { formatMinutes } from "@/lib/format/money";
+import { formatDate, formatMinutes, formatMonth, todayInOslo } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const a = t.studio.agreements;

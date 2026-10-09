@@ -24,7 +24,7 @@ export async function getMyProjects() {
   const user = await requireClient("/");
   const supabase = await createClient();
   const [projects, profile] = await Promise.all([
-    supabase.from("projects").select("id, name, status, clients(name)").neq("status", "archived").order("created_at"),
+    supabase.from("projects").select("id, name, status, live_url, clients(name)").neq("status", "archived").order("created_at"),
     supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle(),
   ]);
   if (projects.error) throw projects.error;

@@ -6,8 +6,7 @@ import { Badge, Empty, PageHeader, Section } from "@/components/ui";
 import { addLogAction, deleteLogAction } from "@/features/maintenance/actions";
 import { HoursMeter } from "@/features/maintenance/components";
 import { getMaintenanceForAdmin } from "@/features/maintenance/queries";
-import { formatDate, formatMonth, todayInOslo } from "@/lib/format/date";
-import { formatMinutes } from "@/lib/format/money";
+import { formatDate, formatMinutes, formatMonth, todayInOslo } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 
