@@ -65,7 +65,7 @@ function StepItem({ step, isFirst, isLast, forms }: { step: Step; isFirst: boole
   return (
     <li className="py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className={`font-medium ${finished ? "text-muted line-through decoration-1" : ""}`}>
             <Link href={`/studio/projects/${step.project_id}/steps/${step.id}`} className="underline-offset-4 hover:underline">
               {step.title}
@@ -82,7 +82,7 @@ function StepItem({ step, isFirst, isLast, forms }: { step: Step; isFirst: boole
             {step.due_date && <Badge tone="muted">{p.due(formatDate(step.due_date))}</Badge>}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
           {step.status === "active" && (
             <>
               <ActionButton action={completeStepAction.bind(null, step.id, false)} label={p.markDone} />
@@ -93,21 +93,33 @@ function StepItem({ step, isFirst, isLast, forms }: { step: Step; isFirst: boole
           {finished && <ActionButton action={reopenStepAction.bind(null, step.id)} label={p.reopen} />}
           {!isFirst && <ActionButton action={moveStepAction.bind(null, step.id, -1)} label="↑" ariaLabel={p.moveUp(step.title)} />}
           {!isLast && <ActionButton action={moveStepAction.bind(null, step.id, 1)} label="↓" ariaLabel={p.moveDown(step.title)} />}
-          <ActionButton
-            action={deleteStepAction.bind(null, step.id)}
-            label={t.common.delete}
-            ariaLabel={p.deleteStep(step.title)}
-            confirm={p.confirmDeleteStep(step.title)}
-            variant="danger"
-          />
         </div>
       </div>
       <Disclosure summary={p.editStep(step.title)}>
         <ActionForm action={updateStepAction.bind(null, step.id)} submitLabel={p.saveStep} pendingLabel={t.common.loading}>
           <StepFields defaults={step} forms={forms} />
         </ActionForm>
+        {/* Destructive and rare, so it lives with the edit form rather than in every row. */}
+        <div className="mt-6 border-t border-line pt-4">
+          <ActionButton
+            action={deleteStepAction.bind(null, step.id)}
+            label={p.deleteStep(step.title)}
+            confirm={p.confirmDeleteStep(step.title)}
+            variant="danger"
+          />
+        </div>
       </Disclosure>
     </li>
+  );
+}
+
+function StepList({ phase, forms }: { phase: Phase; forms: Editor["forms"] }) {
+  return (
+    <ol className="mt-4 divide-y divide-line border-y border-line">
+      {phase.project_steps.map((step, i) => (
+        <StepItem key={step.id} step={step} isFirst={i === 0} isLast={i === phase.project_steps.length - 1} forms={forms} />
+      ))}
+    </ol>
   );
 }
 
@@ -149,12 +161,16 @@ function PhaseSection({ phase, isFirst, isLast, forms }: { phase: Phase; isFirst
 
       {phase.project_steps.length === 0 ? (
         <p className="mt-4 text-muted">{p.noSteps}</p>
+      ) : phase.status === "done" ? (
+        // Finished phases fold away so the active work stays near the top.
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm underline underline-offset-4 hover:no-underline">
+            {p.showSteps(phase.project_steps.length)}
+          </summary>
+          <StepList phase={phase} forms={forms} />
+        </details>
       ) : (
-        <ol className="mt-4 divide-y divide-line border-y border-line">
-          {phase.project_steps.map((step, i) => (
-            <StepItem key={step.id} step={step} isFirst={i === 0} isLast={i === phase.project_steps.length - 1} forms={forms} />
-          ))}
-        </ol>
+        <StepList phase={phase} forms={forms} />
       )}
 
       <Disclosure summary={p.addStep}>

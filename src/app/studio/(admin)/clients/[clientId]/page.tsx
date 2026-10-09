@@ -9,6 +9,7 @@ import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 import { ClientFields } from "../client-fields";
 import { Agreements } from "./agreements";
+import { Privacy } from "./privacy";
 
 const s = t.studio.clients;
 
@@ -93,11 +94,14 @@ export default async function ClientPage({ params }: PageProps<"/studio/clients/
           </Section>
         </div>
 
-        <Section id="details" title={s.details}>
-          <ActionForm action={updateClientAction.bind(null, client.id)} submitLabel={s.save} pendingLabel={t.common.loading}>
-            <ClientFields defaults={{ ...client, internal_notes: internalNotes }} />
-          </ActionForm>
-        </Section>
+        <div>
+          <Section id="details" title={s.details}>
+            <ActionForm action={updateClientAction.bind(null, client.id)} submitLabel={s.save} pendingLabel={t.common.loading}>
+              <ClientFields defaults={{ ...client, internal_notes: internalNotes }} />
+            </ActionForm>
+          </Section>
+          <Privacy clientId={client.id} clientName={client.name} />
+        </div>
       </div>
     </>
   );

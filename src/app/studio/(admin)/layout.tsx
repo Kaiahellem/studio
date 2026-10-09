@@ -17,6 +17,7 @@ function NavLinks({ current }: { current: boolean }) {
     { href: "/studio/clients", label: t.studio.nav.clients },
     { href: "/studio/change-requests", label: t.studio.nav.requests },
     { href: "/studio/plans", label: t.studio.nav.plans },
+    { href: "/studio/settings", label: t.studio.nav.settings },
     { href: "/studio/sikkerhet", label: t.studio.nav.security },
   ];
   return links.map((l) =>

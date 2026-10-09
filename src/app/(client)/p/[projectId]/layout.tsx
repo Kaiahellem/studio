@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { NavLink } from "@/components/nav-link";
-import { hasLaunched } from "@/features/maintenance/queries";
+import { projectAccess } from "@/features/maintenance/queries";
 import { t } from "@/i18n/nb";
 
 const n = t.client.nav;
@@ -35,7 +35,7 @@ function ProjectNav({ projectId, current, launched }: { projectId: string; curre
 
 export default async function ProjectLayout({ children, params }: LayoutProps<"/p/[projectId]">) {
   const { projectId } = await params;
-  const launched = await hasLaunched(projectId);
+  const { launched } = await projectAccess(projectId);
   return (
     <>
       <nav aria-label={n.label} className="-mt-4 mb-10 flex flex-wrap gap-x-6 gap-y-2 border-b border-line pb-3 text-sm">

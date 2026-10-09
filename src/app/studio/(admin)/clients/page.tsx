@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FormMessage } from "@/components/form";
 import { Empty, PageHeader, buttonClass } from "@/components/ui";
 import { listClients } from "@/features/clients/queries";
 import { t } from "@/i18n/nb";
@@ -8,8 +9,8 @@ const s = t.studio.clients;
 
 export const metadata: Metadata = { title: s.title };
 
-export default async function ClientsPage() {
-  const clients = await listClients();
+export default async function ClientsPage({ searchParams }: PageProps<"/studio/clients">) {
+  const [clients, { slettet }] = await Promise.all([listClients(), searchParams]);
 
   return (
     <>
@@ -21,6 +22,11 @@ export default async function ClientsPage() {
           </Link>
         }
       />
+      {typeof slettet === "string" && (
+        <div className="mb-8">
+          <FormMessage message={t.studio.privacy.deleted(slettet)} />
+        </div>
+      )}
       {clients.length === 0 ? (
         <Empty>{s.empty}</Empty>
       ) : (

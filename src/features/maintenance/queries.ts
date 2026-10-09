@@ -2,6 +2,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { requireAdmin, requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { uuid } from "@/lib/forms";
 import { peopleNames, requireClientAccess, withDownloadUrls } from "@/features/hub/queries";
 import { adminNames } from "@/features/steps/admin-queries";
 
@@ -87,11 +88,15 @@ export async function getRequestForClient(projectId: string, requestId: string) 
   };
 }
 
-export async function hasLaunched(projectId: string) {
-  await requireUser();
+// Used by the project layout: every page under /p/[projectId] is "not found" unless RLS lets
+// the user see the project, so another client's URLs never render even an empty shell.
+export async function projectAccess(projectId: string) {
+  await requireUser(`/p/${projectId}`);
+  if (!uuid.safeParse(projectId).success) notFound();
   const supabase = await createClient();
-  const { data } = await supabase.from("projects").select("live_url").eq("id", projectId).maybeSingle();
-  return Boolean(data?.live_url);
+  const { data } = await supabase.from("projects").select("id, live_url").eq("id", projectId).maybeSingle();
+  if (!data) notFound();
+  return { launched: Boolean(data.live_url) };
 }
 
 // ---------------------------------------------------------------------------
