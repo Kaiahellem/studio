@@ -83,6 +83,50 @@ export const nb = {
   client: {
     noProjects: "Du har ingen prosjekter her ennå.",
     projectsTitle: "Prosjektene dine",
+    greeting: (name: string | null) => (name ? `Hei, ${name}` : "Hei"),
+    yourTurn: {
+      heading: "Din tur",
+      dueBy: (date: string) => `Fint om du gjør dette innen ${date}.`,
+      more: (n: number) => (n === 1 ? "Én ting til venter på deg:" : `${n} ting til venter på deg:`),
+      action: {
+        task: "Se hva du skal gjøre",
+        upload: "Last opp",
+        approval: "Se og godkjenn",
+        form: "Fyll ut skjemaet",
+        link: "Åpne",
+      },
+    },
+    studioTurn: {
+      heading: "Ingenting venter på deg nå",
+      working: "Akkurat nå:",
+      expectBy: (date: string) => `Du hører fra oss senest ${date}.`,
+      noDate: "Vi sier fra her og på e-post så snart det er din tur igjen.",
+    },
+    done: {
+      heading: "Prosjektet er ferdig",
+      body: "Takk for samarbeidet! Alt du trenger ligger fortsatt her.",
+    },
+    timeline: {
+      heading: "Slik ligger vi an",
+      phaseOf: (n: number, total: number) => `Fase ${n} av ${total}`,
+      status: { done: "Fullført", active: "Pågår nå", pending: "Kommer senere" },
+      stepStatus: { done: "Ferdig", skipped: "Ikke aktuelt", active: "Pågår", pending: "Senere" },
+      turn: { client: "Din tur", studio: "Vi jobber med dette" },
+    },
+    staging: {
+      heading: "Testversjonen",
+      body: "Her kan du følge med på nettsiden mens vi bygger den.",
+      open: "Åpne testversjonen",
+    },
+    step: {
+      back: "Til oversikten",
+      phase: (name: string) => `Fase: ${name}`,
+      round: (n: number, max: number | null) => (max === null ? `Runde ${n}` : `Runde ${n} av ${max}`),
+      openLink: "Åpne lenken",
+      notActive: "Dette steget er ikke aktivt nå.",
+      comingSoon: "Her kommer muligheten til å gjøre dette steget direkte i portalen.",
+    },
+    newTab: "(åpnes i ny fane)",
   },
   studio: {
     dashboardTitle: "Oversikt",

@@ -1,41 +1,38 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { isAdminAccount, requireUser } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
+import { getMyProjects } from "@/features/hub/queries";
 import { t } from "@/i18n/nb";
 
-// Milestone 1 placeholder: lists the client's projects via RLS. The real hub is milestone 3.
-async function Projects() {
-  await requireUser("/");
-  if (await isAdminAccount()) redirect("/studio");
+const c = t.client;
 
-  const supabase = await createClient();
-  const { data: projects, error } = await supabase
-    .from("projects")
-    .select("id, name, clients(name)")
-    .order("created_at");
-  if (error) throw error;
+export const metadata: Metadata = { title: c.projectsTitle };
 
-  if (projects.length === 0) return <p className="text-muted">{t.client.noProjects}</p>;
+// One project (the usual case) goes straight to it; several get a short list.
+export default async function ClientHome() {
+  const { projects, firstName } = await getMyProjects();
+  if (projects.length === 1) redirect(`/p/${projects[0].id}`);
 
-  return (
-    <ul className="divide-y divide-line border-y border-line">
-      {projects.map((p) => (
-        <li key={p.id} className="py-4">
-          <p className="text-lg">{p.name}</p>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-export default function ClientHome() {
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="font-serif text-4xl tracking-tight">{t.client.projectsTitle}</h1>
-      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
-        <Projects />
-      </Suspense>
+      <header>
+        <p className="mb-2 text-muted">{c.greeting(firstName)}</p>
+        <h1 className="font-serif text-4xl tracking-tight">{c.projectsTitle}</h1>
+      </header>
+      {projects.length === 0 ? (
+        <p className="text-muted">{c.noProjects}</p>
+      ) : (
+        <ul className="divide-y divide-line border-y border-line">
+          {projects.map((p) => (
+            <li key={p.id}>
+              <Link href={`/p/${p.id}`} className="flex flex-col gap-1 py-5 hover:bg-surface/60">
+                <span className="text-lg font-medium">{p.name}</span>
+                <span className="text-sm text-muted">{p.clients?.name}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
