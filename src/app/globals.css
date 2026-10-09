@@ -1,33 +1,35 @@
 @import "tailwindcss";
 
 /*
-  Design tokens: Quiet Studio (DESIGN.md). Every value comes from DESIGN.md, where each
-  text/background pair is checked against WCAG 2.1 AA. Never use raw hex values in components;
-  use these tokens through the Tailwind theme below.
+  Design tokens: "Light and floating" (DESIGN.md). One cool neutral grey family; cards float
+  on soft shadows instead of borders. Every value comes from DESIGN.md, where each text/
+  background pair is checked against WCAG 2.1 AA. Never use raw hex values in components.
 */
 :root {
   color-scheme: light;
 
   /* Surfaces, text and lines */
-  --canvas: #faf9f6;
-  --sheet: #ffffff;
-  --subtle: #f3f4f6;
-  --active: #e9eaec;
-  --ink: #1e232a;
-  --ink-secondary: #5f6571;
-  --ink-disabled: #8c9099;
-  --hairline: #e5e7eb; /* decoration only */
-  --control-border: #80858e; /* anything the user must see to operate it (3:1) */
-  --focus: #4a6572;
+  --canvas: #f7f7f8;
+  --card: #ffffff;
+  --inset: #f4f4f5;
+  --hover: #ededef;
+  --selected: #e9e9ec;
+  --ink: #18181b;
+  --ink-secondary: #5e5e66;
+  --ink-disabled: #a1a1aa; /* disabled text and decoration only */
+  --separator: #ececee; /* inset row separators inside cards: the only lines besides controls */
+  --control-border: #8a8a93; /* form controls, 3:1 on --card and --inset */
+  --focus: #2b66d6;
+  --card-edge: transparent; /* dark mode only: shadows are barely visible there */
 
   /* Buttons */
-  --primary-bg: #1e232a;
-  --primary-bg-hover: #374151;
+  --primary-bg: #18181b;
+  --primary-bg-hover: #3f3f46;
   --primary-text: #ffffff;
 
   /* Status: always text in a tag, never colour alone */
-  --neutral-fg: #5f6571;
-  --neutral-bg: #f3f4f6;
+  --neutral-fg: #5e5e66;
+  --neutral-bg: #f1f1f3;
   --slate-fg: #4a6572;
   --slate-bg: #eef3f6;
   --sage-fg: #5b6b5c;
@@ -37,27 +39,33 @@
   --brick-fg: #9f2f2d;
   --brick-bg: #fdebec;
 
-  --shadow-float: 0 4px 12px rgba(30, 35, 42, 0.06), 0 1px 2px rgba(30, 35, 42, 0.04);
+  /* Elevation: three levels, soft, layered, neutral */
+  --elevation-card: 0 1px 2px rgba(16, 16, 20, 0.04), 0 2px 8px rgba(16, 16, 20, 0.04), 0 8px 24px rgba(16, 16, 20, 0.04);
+  --elevation-raised: 0 1px 2px rgba(16, 16, 20, 0.05), 0 4px 12px rgba(16, 16, 20, 0.06), 0 12px 32px rgba(16, 16, 20, 0.06);
+  --elevation-overlay: 0 2px 6px rgba(16, 16, 20, 0.06), 0 16px 48px rgba(16, 16, 20, 0.14);
+  --backdrop: rgba(16, 16, 20, 0.24);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --canvas: #18191b;
-    --sheet: #202124;
-    --subtle: #2a2b2e;
-    --active: #323337;
-    --ink: #e8e6e1;
-    --ink-secondary: #a4a7ae;
-    --ink-disabled: #7a7e86;
-    --hairline: rgba(255, 255, 255, 0.08);
-    --control-border: #7a7e86;
-    --focus: #afc6d2;
+    --canvas: #111113;
+    --card: #1c1c1f;
+    --inset: #26262a;
+    --hover: #2a2a2e;
+    --selected: #303035;
+    --ink: #ededef;
+    --ink-secondary: #a1a1a9;
+    --ink-disabled: #6e6e76;
+    --separator: rgba(255, 255, 255, 0.07);
+    --control-border: #7c7c85;
+    --focus: #6e9bf0;
+    --card-edge: rgba(255, 255, 255, 0.06);
 
-    --primary-bg: #e8e6e1;
+    --primary-bg: #ededef;
     --primary-bg-hover: #ffffff;
-    --primary-text: #1e232a;
+    --primary-text: #18181b;
 
     --neutral-fg: #c9c9c6;
     --neutral-bg: #2e2f33;
@@ -70,21 +78,27 @@
     --brick-fg: #f2b8b5;
     --brick-bg: #3e2424;
 
-    --shadow-float: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+    --elevation-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+    --elevation-raised: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.25);
+    --elevation-overlay: 0 2px 6px rgba(0, 0, 0, 0.35), 0 16px 48px rgba(0, 0, 0, 0.5);
+    --backdrop: rgba(0, 0, 0, 0.5);
   }
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
-  --color-sheet: var(--sheet);
-  --color-subtle: var(--subtle);
-  --color-active: var(--active);
+  --color-card: var(--card);
+  --color-inset: var(--inset);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-disabled: var(--ink-disabled);
-  --color-hairline: var(--hairline);
+  --color-separator: var(--separator);
   --color-control-border: var(--control-border);
   --color-focus: var(--focus);
+  --color-card-edge: var(--card-edge);
+  --color-backdrop: var(--backdrop);
   --color-primary-bg: var(--primary-bg);
   --color-primary-bg-hover: var(--primary-bg-hover);
   --color-primary-text: var(--primary-text);
@@ -100,13 +114,17 @@
   --color-brick-bg: var(--brick-bg);
 
   /*
-    Old names from before DESIGN.md, pointing at the new tokens so pages not yet updated
-    still look right. Remove once every page uses the new names.
+    Names from earlier directions, pointing at the current tokens so pages not yet updated
+    keep working. Remove once every page uses the names above.
   */
+  --color-sheet: var(--card);
+  --color-subtle: var(--inset);
+  --color-active: var(--selected);
+  --color-hairline: var(--separator);
   --color-paper: var(--canvas);
-  --color-surface: var(--sheet);
+  --color-surface: var(--card);
   --color-muted: var(--ink-secondary);
-  --color-line: var(--hairline);
+  --color-line: var(--separator);
   --color-field-border: var(--control-border);
   --color-accent: var(--primary-bg);
   --color-accent-ink: var(--primary-text);
@@ -119,9 +137,20 @@
   --font-serif: var(--font-hanken), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --shadow-float: var(--shadow-float);
+  /* Radius (DESIGN.md, Elevation and shape) */
+  --radius-card: 12px;
+  --radius-inset: 10px;
+  --radius-control: 10px;
+  --radius-nav: 8px;
+  --radius-tag: 6px;
+  --radius-check: 4px;
+  --radius-dialog: 16px;
+
+  --shadow-card: var(--elevation-card);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-overlay: var(--elevation-overlay);
+  /* Earlier name */
+  --shadow-float: var(--elevation-overlay);
 }
 
 /* Type scale (DESIGN.md, Typography). Weights 400/500/600 only. */
@@ -216,6 +245,7 @@ textarea {
 .prose a {
   color: var(--ink);
   text-decoration: underline;
+  text-decoration-color: var(--ink-disabled);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   transition: text-decoration-color 120ms ease-out;
