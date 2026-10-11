@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ClipboardList,
   FileText,
   Folder,
   LayoutGrid,
+  MessagesSquare,
+  Settings,
+  Shield,
+  Users,
   Menu as MenuIcon,
   MessageSquarePlus,
   Package,
@@ -14,7 +19,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { t } from "@/i18n/nb";
 import { Icon } from "./icon";
 
@@ -26,6 +31,11 @@ const icons = {
   requests: MessageSquarePlus,
   maintenance: Wrench,
   handover: Package,
+  clients: Users,
+  inbox: MessagesSquare,
+  plans: ClipboardList,
+  settings: Settings,
+  security: Shield,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIcon = keyof typeof icons;
@@ -38,7 +48,19 @@ const isCurrent = (pathname: string, item: NavItem) =>
 // 36px rows (44px on mobile), 8px radius, --hover on hover, --selected when active; icons in
 // --ink-secondary, label in --ink (DESIGN.md, Navigation items).
 function Nav({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => void }) {
-  const pathname = usePathname();
+  // The current-page marker needs the URL, which is only known at request time.
+  return (
+    <Suspense fallback={<NavList groups={groups} onNavigate={onNavigate} pathname="" />}>
+      <CurrentNav groups={groups} onNavigate={onNavigate} />
+    </Suspense>
+  );
+}
+
+function CurrentNav(props: { groups: NavGroup[]; onNavigate?: () => void }) {
+  return <NavList {...props} pathname={usePathname()} />;
+}
+
+function NavList({ groups, onNavigate, pathname }: { groups: NavGroup[]; onNavigate?: () => void; pathname: string }) {
   return (
     <nav aria-label={t.ds.mainNav} className="flex flex-col gap-6">
       {groups.map((group, i) => (
@@ -72,16 +94,15 @@ function Nav({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => vo
 
 // The page title in the mobile top bar comes from <title> ("Side – Kundeportal").
 function usePageTitle(fallback: string) {
-  const pathname = usePathname();
   const [title, setTitle] = useState(fallback);
   useEffect(() => {
     const update = () => setTitle(document.title.split(" – ")[0] || fallback);
     update();
     const observer = new MutationObserver(update);
-    const node = document.querySelector("title");
-    if (node) observer.observe(node, { childList: true });
+    // Watch the whole head: navigation may replace the <title> element rather than its text.
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true });
     return () => observer.disconnect();
-  }, [pathname, fallback]);
+  }, [fallback]);
   return title;
 }
 

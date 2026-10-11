@@ -5,11 +5,22 @@ import { cardClass } from "./card";
 // separators inset to align with the text and none after the last row. Hover keeps the
 // card's radius on the first and last row. Actions show on hover and keyboard focus, and are
 // always visible on touch devices.
-export function InsetGroupedList({ children, label, inCard = true }: { children: ReactNode; label?: string; inCard?: boolean }) {
+export function InsetGroupedList({
+  children,
+  label,
+  inCard = true,
+  ordered = false,
+}: {
+  children: ReactNode;
+  label?: string;
+  inCard?: boolean;
+  ordered?: boolean;
+}) {
+  const List = ordered ? "ol" : "ul";
   return (
-    <ul aria-label={label} className={inCard ? cardClass("card", false) : ""}>
+    <List aria-label={label} className={inCard ? cardClass("card", false) : ""}>
       {children}
-    </ul>
+    </List>
   );
 }
 

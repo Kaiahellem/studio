@@ -38,14 +38,14 @@ export function Menu({ label, trigger, children }: { label: string; trigger: Rea
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
-        className="flex min-h-11 min-w-11 items-center justify-center rounded-sm text-ink-secondary hover:bg-subtle hover:text-ink md:min-h-8 md:min-w-8"
+        className="flex min-h-11 min-w-11 items-center justify-center rounded-nav text-ink-secondary hover:bg-hover hover:text-ink md:min-h-8 md:min-w-8"
       >
         {trigger}
       </button>
       <div
         id={id}
         hidden={!open}
-        className="absolute right-0 z-30 mt-1 min-w-48 rounded-sm border border-hairline bg-sheet p-1 shadow-float"
+        className="absolute right-0 z-30 mt-1 min-w-48 rounded-card bg-card p-1 shadow-overlay"
       >
         {children}
       </div>
@@ -54,7 +54,7 @@ export function Menu({ label, trigger, children }: { label: string; trigger: Rea
 }
 
 export function MenuItem({ children, onSelect, href }: { children: ReactNode; onSelect?: () => void; href?: string }) {
-  const cls = "flex min-h-11 w-full items-center gap-2 rounded-sm px-3 text-left text-body hover:bg-subtle md:min-h-9";
+  const cls = "flex min-h-11 w-full items-center gap-2 rounded-nav px-3 text-left text-body hover:bg-hover md:min-h-9";
   return href ? (
     <a href={href} className={cls}>
       {children}
