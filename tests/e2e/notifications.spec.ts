@@ -1,6 +1,6 @@
 // Milestone 7: notifications and reminders. Emails are read from Mailpit.
 import { devices, expect, test } from "@playwright/test";
-import { advanceToPhase, countEmails, createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, service, stepIdByTitle, waitForEmail } from "./helpers";
+import { advanceToPhase, countEmails, createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, openAddRow, service, stepIdByTitle, waitForEmail } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -20,6 +20,7 @@ test("turns, approvals, comments and change requests notify the right side", asy
   let since = new Date();
   const proposal = await stepIdByTitle(user.projectId, "Godta tilbudet");
   await studio.goto(`/studio/projects/${user.projectId}/steps/${proposal}`);
+  await openAddRow(studio, "Del ny versjon med kunden");
   await studio.getByRole("textbox", { name: "Melding til kunden" }).fill("Tilbudet er klart.");
   await studio.getByRole("button", { name: "Del ny versjon med kunden" }).click();
   const turn = await waitForEmail(user.email, "Din tur: Godta tilbudet", since);

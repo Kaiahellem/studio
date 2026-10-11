@@ -44,7 +44,7 @@ describe("change requests", () => {
     const row = must(await service.from("change_requests").select("accepted_at, done_at").eq("id", requestId).single());
     expect(row.accepted_at).not.toBeNull();
     expect(row.done_at).not.toBeNull();
-    const events = must(await service.from("activity_log").select("data").eq("entity_id", requestId).eq("event", "change_request.status"));
+    const events = must(await service.from("activity_log").select("data").eq("entity_id", requestId).eq("event", "change_request.status").order("id"));
     expect(events.map((e) => (e.data as { to: string }).to)).toEqual(["accepted", "done"]);
     must(await admin.from("change_requests").update({ status: "in_progress" }).eq("id", requestId));
   });

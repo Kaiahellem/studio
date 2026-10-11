@@ -2,7 +2,7 @@
 // Phases 1–6 are covered by walkthrough.spec.ts; this starts at launch.
 import { randomUUID } from "node:crypto";
 import { devices, expect, test } from "@playwright/test";
-import { advanceToPhase, createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, service } from "./helpers";
+import { advanceToPhase, createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, openAddRow, service } from "./helpers";
 
 test("launch checklist, handover page, public link and a finished project", async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "One run covers both: the client uses a phone viewport.");
@@ -88,7 +88,7 @@ test("launch checklist, handover page, public link and a finished project", asyn
   await expect(studio.getByText(/Publisert for kunden/)).toBeVisible();
   await studio.getByRole("button", { name: "Slå på offentlig lenke" }).click();
   await expect(studio.getByText("Lenken er aktiv.", { exact: false })).toBeVisible();
-  const publicUrl = (await studio.locator("p.font-mono").textContent())!.trim();
+  const publicUrl = (await studio.locator("p.text-mono").textContent())!.trim();
 
   await studio.goto(projectUrl);
   await phase8.getByRole("button", { name: "Marker som fullført" }).first().click(); // Overleveringsside
@@ -103,6 +103,7 @@ test("launch checklist, handover page, public link and a finished project", asyn
   await expect(client.getByRole("definition").filter({ hasText: /^Ferdig$/ })).toBeVisible();
 
   await studio.goto(`${projectUrl}/steps/${(await service.from("project_steps").select("id").eq("project_id", user.projectId).eq("title", "Bekreft vedlikeholdsavtalen").single()).data!.id}`);
+  await openAddRow(studio, "Del ny versjon med kunden");
   await studio.getByRole("textbox", { name: "Melding til kunden" }).fill("Avtalen ligger under Dokumenter.");
   await studio.getByRole("button", { name: "Del ny versjon med kunden" }).click();
   await expect(studio.getByText("Runde 1 venter på kunden.")).toBeVisible();

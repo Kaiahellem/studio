@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/db/types";
 import { totp } from "../totp";
@@ -41,12 +41,17 @@ export async function createAdminUser() {
 
 type MailpitMessage = { ID: string; Created: string };
 
+// Mailpit stamps messages with the Docker VM's clock, which can drift a second or two behind the
+// host (after sleep, say). Login emails to one address are at least 5 s apart, so 2 s is safe.
+const CLOCK_SKEW_MS = 2_000;
+const sentAfter = (m: { Created: string }, since: Date) => new Date(m.Created).getTime() > since.getTime() - CLOCK_SKEW_MS;
+
 // Waits for a login email in Mailpit sent after `since`, and returns the code and the link from it.
 export async function readLoginEmail(email: string, since = new Date(0)): Promise<{ code: string; link: string }> {
   for (let attempt = 0; attempt < 40; attempt++) {
     const search = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
     const { messages } = (await search.json()) as { messages: MailpitMessage[] };
-    const fresh = (messages ?? []).filter((m) => new Date(m.Created) > since);
+    const fresh = (messages ?? []).filter((m) => sentAfter(m, since));
     if (fresh.length) {
       const message = (await (await fetch(`${MAILPIT}/api/v1/message/${fresh[0].ID}`)).json()) as { HTML: string };
       const code = message.HTML.match(/>\s*(\d{6})\s*</)?.[1];
@@ -142,7 +147,7 @@ export async function waitForEmail(to: string, subject: string, since: Date, tim
   while (Date.now() < deadline) {
     const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`);
     const { messages } = (await res.json()) as { messages: MailpitSummary[] };
-    const hit = (messages ?? []).find((m) => new Date(m.Created) > since && m.Subject.includes(subject));
+    const hit = (messages ?? []).find((m) => sentAfter(m, since) && m.Subject.includes(subject));
     if (hit) {
       const full = (await (await fetch(`${MAILPIT}/api/v1/message/${hit.ID}`)).json()) as { Subject: string; Text: string; HTML: string };
       return full;
@@ -156,4 +161,20 @@ export async function countEmails(to: string, subject: string, since: Date) {
   const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`);
   const { messages } = (await res.json()) as { messages: MailpitSummary[] };
   return (messages ?? []).filter((m) => new Date(m.Created) > since && m.Subject.includes(subject)).length;
+}
+
+// "Legg til …" forms sit in a dashed <details> row (DESIGN.md, AddRow). Opens it unless it
+// already is, since some start open when the list is empty.
+export async function openAddRow(scope: Page | Locator, label: string) {
+  const summary = scope.locator("summary", { hasText: label }).first();
+  const open = await summary.evaluate((el) => (el.parentElement as HTMLDetailsElement).open);
+  if (!open) await summary.click();
+  return scope.locator("details[open]", { has: summary });
+}
+
+// On narrow screens "Logg ut" sits in the navigation drawer.
+export async function logOut(page: Page) {
+  const visible = page.getByRole("button", { name: "Logg ut" }).filter({ visible: true });
+  if ((await visible.count()) === 0) await page.getByRole("button", { name: "Åpne menyen" }).click();
+  await visible.first().click();
 }

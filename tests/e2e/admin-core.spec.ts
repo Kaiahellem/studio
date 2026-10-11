@@ -16,7 +16,7 @@ test("create a client, invite a user, create a project and work its steps", asyn
   const clientName = `Testbedrift ${randomUUID().slice(0, 6)}`;
   await page.getByRole("link", { name: "Ny kunde" }).first().click();
   await page.getByRole("textbox", { name: "Navn på bedriften" }).fill(clientName);
-  await page.getByRole("textbox", { name: "Organisasjonsnummer" }).fill("123 456 789");
+  await page.getByRole("textbox", { name: "Organisasjonsnummer" }).fill("923 609 016");
   await page.getByRole("textbox", { name: "Interne notater" }).fill("Kom via nettverket.");
   await page.getByRole("button", { name: "Opprett kunde" }).click();
   await expect(page.getByRole("heading", { level: 1, name: clientName })).toBeVisible();
@@ -25,6 +25,7 @@ test("create a client, invite a user, create a project and work its steps", asyn
   const inviteEmail = `invitert-${randomUUID().slice(0, 8)}@e2e.test`;
   const since = new Date();
   const members = page.getByRole("region", { name: "Brukere med tilgang" });
+  await members.locator("summary", { hasText: "Inviter bruker" }).click();
   await members.getByRole("textbox", { name: "E-postadresse" }).fill(inviteEmail);
   await members.getByRole("textbox", { name: "Navn", exact: true }).fill("Ida Invitert");
   await members.getByRole("button", { name: "Send invitasjon" }).click();

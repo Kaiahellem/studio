@@ -1,7 +1,7 @@
 // Milestone 4 "done when": the demo project can be walked through phases 1 to 6 end to end.
 // The studio works on desktop, the client on a phone, both through the UI only.
 import { devices, expect, test, type Page } from "@playwright/test";
-import { createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, stepIdByTitle } from "./helpers";
+import { createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, openAddRow, stepIdByTitle } from "./helpers";
 
 const png = (name: string) => ({ name, mimeType: "image/png", buffer: Buffer.from("89504e470d0a1a0a0000000d49484452", "hex") });
 const pdf = (name: string) => ({ name, mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%âãÏÓ\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF") });
@@ -33,6 +33,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
 
   async function studioOpensRound(title: string, note: string) {
     await studio.goto(await stepUrl(title));
+    await openAddRow(studio, "Del ny versjon med kunden");
     await studio.getByRole("textbox", { name: "Melding til kunden" }).fill(note);
     await studio.getByRole("button", { name: "Del ny versjon med kunden" }).click();
     await expect(studio.getByText(/Runde \d+ venter på kunden\./)).toBeVisible();
@@ -57,7 +58,7 @@ test("phases 1 to 6, studio and client together", async ({ browser }, testInfo) 
 
   // --- Phase 1: Tilbud -------------------------------------------------------
   await studio.goto(`${projectUrl}/documents`);
-  const addDoc = studio.getByRole("region", { name: "Legg til dokument" });
+  const addDoc = await openAddRow(studio, "Legg til dokument");
   await addDoc.getByRole("textbox", { name: "Tittel" }).fill("Tilbud – ny nettside");
   await addDoc.locator('input[type="file"]').setInputFiles(pdf("tilbud.pdf"));
   await addDoc.getByRole("button", { name: "Legg til dokument" }).click();

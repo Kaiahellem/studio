@@ -1,7 +1,7 @@
 // Milestone 6 "done when": the demo client can send a change request, I can handle it and log
 // time, and the client sees status and hours used.
 import { devices, expect, test } from "@playwright/test";
-import { createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, service } from "./helpers";
+import { createAdminWithTotp, createClientUser, loginAsAdmin, loginAsClient, openAddRow, service } from "./helpers";
 
 test("change request from client to done, with time against the agreement", async ({ browser }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "One run covers both: the client uses a phone viewport.");
@@ -62,6 +62,7 @@ test("change request from client to done, with time against the agreement", asyn
   await expect(triage.getByText("Lagret.")).toBeVisible();
 
   const time = studio.getByRole("region", { name: "Tidsføring" });
+  await openAddRow(time, "Før tid");
   await time.getByRole("textbox", { name: "Tid" }).fill("45 min");
   await time.getByRole("textbox", { name: "Hva ble gjort" }).fill("Oppdaterte åpningstider i Sanity");
   await time.getByRole("button", { name: "Før tid" }).click();
@@ -73,10 +74,11 @@ test("change request from client to done, with time against the agreement", asyn
 
   await triage.getByRole("combobox", { name: "Status" }).selectOption("done");
   await triage.getByRole("button", { name: "Lagre" }).click();
-  await expect(studio.getByRole("heading", { level: 1 }).locator("..").locator("..").getByText("Ferdig", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(studio.getByRole("definition").getByText("Ferdig", { exact: true })).toBeVisible();
 
   // A routine maintenance entry as well.
   await studio.goto(`/studio/projects/${user.projectId}/maintenance`);
+  await openAddRow(studio, "Ny oppføring");
   await studio.getByRole("textbox", { name: "Hva ble gjort" }).fill("Oppdaterte avhengigheter og tok sikkerhetskopi");
   await studio.getByRole("textbox", { name: "Tid" }).fill("0:15");
   await studio.getByRole("button", { name: "Ny oppføring" }).click();
