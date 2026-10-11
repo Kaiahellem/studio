@@ -73,28 +73,7 @@
   --color-brick-fg: var(--brick-fg);
   --color-brick-bg: var(--brick-bg);
 
-  /*
-    Names from earlier directions, pointing at the current tokens so pages not yet updated
-    keep working. Remove once every page uses the names above.
-  */
-  --color-sheet: var(--card);
-  --color-subtle: var(--inset);
-  --color-active: var(--selected);
-  --color-hairline: var(--separator);
-  --color-paper: var(--canvas);
-  --color-surface: var(--card);
-  --color-muted: var(--ink-secondary);
-  --color-line: var(--separator);
-  --color-field-border: var(--control-border);
-  --color-accent: var(--primary-bg);
-  --color-accent-ink: var(--primary-text);
-  --color-danger: var(--brick-fg);
-  --color-danger-surface: var(--brick-bg);
-  --color-success: var(--sage-fg);
-  --color-success-surface: var(--sage-bg);
-
   --font-sans: var(--font-hanken), system-ui, sans-serif;
-  --font-serif: var(--font-hanken), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
   /* Radius (DESIGN.md, Elevation and shape) */
@@ -109,8 +88,6 @@
   --shadow-card: var(--elevation-card);
   --shadow-raised: var(--elevation-raised);
   --shadow-overlay: var(--elevation-overlay);
-  /* Earlier name */
-  --shadow-float: var(--elevation-overlay);
 }
 
 /* Type scale (DESIGN.md, Typography). Weights 400/500/600 only. */
