@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import { ButtonLink } from "@/components/ds/button";
+import { Card } from "@/components/ds/card";
+import { Icon } from "@/components/ds/icon";
+import { InsetGroupedList, InsetRow } from "@/components/ds/list-row";
+import { PageHeader } from "@/components/ds/page-header";
 import { FormMessage } from "@/components/form";
-import { Empty, PageHeader, buttonClass } from "@/components/ui";
 import { listClients } from "@/features/clients/queries";
+import { compareNb } from "@/lib/format/nb";
 import { t } from "@/i18n/nb";
 
 const s = t.studio.clients;
@@ -11,36 +17,38 @@ export const metadata: Metadata = { title: s.title };
 
 export default async function ClientsPage({ searchParams }: PageProps<"/studio/clients">) {
   const [clients, { slettet }] = await Promise.all([listClients(), searchParams]);
+  const sorted = [...clients].sort((a, b) => compareNb(a.name, b.name));
 
   return (
-    <>
+    <div className="flex flex-col gap-6">
       <PageHeader
         title={s.title}
         actions={
-          <Link href="/studio/clients/new" className={buttonClass.primary}>
+          <ButtonLink href="/studio/clients/new" variant="primary">
             {s.new}
-          </Link>
+          </ButtonLink>
         }
       />
-      {typeof slettet === "string" && (
-        <div className="mb-8">
-          <FormMessage message={t.studio.privacy.deleted(slettet)} />
-        </div>
-      )}
-      {clients.length === 0 ? (
-        <Empty>{s.empty}</Empty>
+      {typeof slettet === "string" && <FormMessage message={t.studio.privacy.deleted(slettet)} />}
+      {sorted.length === 0 ? (
+        <Card>
+          <p className="text-ink-secondary">{s.empty}</p>
+        </Card>
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
-          {clients.map((c) => (
-            <li key={c.id} className="flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:justify-between">
-              <Link href={`/studio/clients/${c.id}`} className="text-lg font-medium underline-offset-4 hover:underline">
-                {c.name}
+        <InsetGroupedList label={s.title}>
+          {sorted.map((c) => (
+            <InsetRow key={c.id}>
+              <Link href={`/studio/clients/${c.id}`} className="flex items-center justify-between gap-4 py-1">
+                <span className="min-w-0">
+                  <span className="block font-medium">{c.name}</span>
+                  {c.projects.length > 0 && <span className="text-body-compact text-ink-secondary">{c.projects.map((p) => p.name).join(", ")}</span>}
+                </span>
+                <Icon icon={ChevronRight} className="text-ink-secondary" />
               </Link>
-              <span className="text-sm text-muted">{c.projects.map((p) => p.name).join(", ")}</span>
-            </li>
+            </InsetRow>
           ))}
-        </ul>
+        </InsetGroupedList>
       )}
-    </>
+    </div>
   );
 }

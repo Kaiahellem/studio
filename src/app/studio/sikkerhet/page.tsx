@@ -29,21 +29,21 @@ async function Security({ searchParams }: { searchParams: PageProps<"/studio/sik
   const next = safeNextPath(params.next, "/studio/sikkerhet?aktivert=1");
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8">
       {params.aktivert === "1" && <FormMessage message={t.auth.security.enrolled} />}
-      <p className="text-lg leading-relaxed text-muted">{t.auth.security.intro}</p>
 
       <section aria-labelledby="factors-heading" className="flex flex-col gap-3">
-        <h2 id="factors-heading" className="font-serif text-2xl">
+        <h2 id="factors-heading" className="text-title-m">
           {t.auth.security.factorsTitle}
         </h2>
         {verified.length === 0 ? (
-          <p className="text-muted">{t.auth.security.noFactors}</p>
+          <p className="text-ink-secondary">{t.auth.security.noFactors}</p>
         ) : (
-          <ul className="divide-y divide-line border-y border-line">
-            {verified.map((f) => (
-              <li key={f.id} className="py-3">
+          <ul className="rounded-inset bg-inset">
+            {verified.map((f, i) => (
+              <li key={f.id} className="relative flex min-h-12 items-center px-4">
                 {f.friendly_name ?? t.auth.mfa.factorLabel}
+                {i < verified.length - 1 && <span aria-hidden="true" className="absolute bottom-0 left-4 right-0 h-px bg-separator" />}
               </li>
             ))}
           </ul>
@@ -51,15 +51,15 @@ async function Security({ searchParams }: { searchParams: PageProps<"/studio/sik
       </section>
 
       <section aria-labelledby="enroll-heading" className="flex flex-col gap-4">
-        <h2 id="enroll-heading" className="font-serif text-2xl">
+        <h2 id="enroll-heading" className="text-title-m">
           {verified.length === 0 ? t.auth.security.enrollTitle : t.auth.security.addAnother}
         </h2>
-        <p className="text-sm text-muted">{t.auth.security.recoveryNote}</p>
+        <p className="text-small text-ink-secondary">{t.auth.security.recoveryNote}</p>
         <EnrollForm next={next} />
       </section>
 
       {verified.length > 0 && (
-        <Link href="/studio" className="text-sm underline underline-offset-4 hover:no-underline">
+        <Link href="/studio" className="prose-link text-small text-ink-secondary">
           {t.common.back}
         </Link>
       )}
@@ -69,8 +69,8 @@ async function Security({ searchParams }: { searchParams: PageProps<"/studio/sik
 
 export default function SecurityPage({ searchParams }: PageProps<"/studio/sikkerhet">) {
   return (
-    <AuthShell title={t.auth.security.title}>
-      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
+    <AuthShell title={t.auth.security.title} intro={t.auth.security.intro}>
+      <Suspense fallback={<p className="text-ink-secondary">{t.common.loading}</p>}>
         <Security searchParams={searchParams} />
       </Suspense>
     </AuthShell>

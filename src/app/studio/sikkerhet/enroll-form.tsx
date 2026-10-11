@@ -23,16 +23,16 @@ export function EnrollForm({ next }: { next: string }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <ol className="list-decimal space-y-2 pl-5 leading-relaxed">
+      <ol className="list-decimal space-y-2 pl-5 text-body">
         {t.auth.security.enrollSteps.map((s) => (
           <li key={s}>{s}</li>
         ))}
       </ol>
       {/* eslint-disable-next-line @next/next/no-img-element -- data URI from Supabase */}
-      <img src={state.qrCode} alt={t.auth.security.qrAlt} width={200} height={200} className="rounded-md bg-white p-3" />
+      <img src={state.qrCode} alt={t.auth.security.qrAlt} width={200} height={200} className="rounded-inset bg-white p-3" />
       <div>
-        <p className="text-sm font-medium">{t.auth.security.secretLabel}</p>
-        <p className="mt-1 break-all font-mono text-sm">{state.secret}</p>
+        <p className="text-label">{t.auth.security.secretLabel}</p>
+        <p className="mt-1 break-all rounded-inset bg-inset p-3 text-mono">{state.secret}</p>
       </div>
       <form action={action} className="flex flex-col gap-6" noValidate>
         <input type="hidden" name="intent" value="verify" />
@@ -46,7 +46,7 @@ export function EnrollForm({ next }: { next: string }) {
           pattern="[0-9]{6}"
           maxLength={6}
           required
-          className="font-mono text-xl tracking-[0.4em]"
+          className="tracking-[0.4em] tabular-nums"
           error={state.error}
         />
         <SubmitButton full pendingText={t.auth.checkEmail.verifying}>{t.auth.security.verify}</SubmitButton>

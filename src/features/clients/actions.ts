@@ -7,6 +7,7 @@ import { z } from "zod";
 import type { FormState } from "@/components/form";
 import { requireAdmin } from "@/lib/auth/session";
 import { firstError, formObject, optionalText, requiredText, uuid } from "@/lib/forms";
+import { isValidOrgNumber, parsePhone } from "@/lib/format/nb";
 import { publicEnv } from "@/lib/public-env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -14,11 +15,26 @@ import { t } from "@/i18n/nb";
 
 const s = t.studio.clients;
 
+// Organisation numbers: 9 digits with the modulus 11 check, stored without spaces. Phone
+// numbers: accepted with or without spaces and +47, stored normalised (DESIGN.md, Formats).
+const orgNumber = optionalText(20).transform((v, ctx) => {
+  if (!v) return null;
+  const digits = v.replace(/\s/g, "");
+  if (!isValidOrgNumber(digits)) ctx.addIssue({ code: "custom", message: s.invalidOrgNumber });
+  return digits;
+});
+const phone = optionalText(50).transform((v, ctx) => {
+  if (!v) return null;
+  const parsed = parsePhone(v);
+  if (!parsed) ctx.addIssue({ code: "custom", message: s.invalidPhone });
+  return parsed;
+});
+
 const clientSchema = z.object({
   name: requiredText(s.nameRequired),
-  org_number: optionalText(20),
+  org_number: orgNumber,
   contact_email: optionalText(320),
-  contact_phone: optionalText(50),
+  contact_phone: phone,
   address: optionalText(500),
   internal_notes: optionalText(20000),
 });

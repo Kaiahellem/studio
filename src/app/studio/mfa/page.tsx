@@ -28,9 +28,8 @@ async function MfaStep({ searchParams }: { searchParams: PageProps<"/studio/mfa"
 
 export default function MfaPage({ searchParams }: PageProps<"/studio/mfa">) {
   return (
-    <AuthShell title={t.auth.mfa.title}>
-      <p className="mb-8 text-lg leading-relaxed text-muted">{t.auth.mfa.intro}</p>
-      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
+    <AuthShell title={t.auth.mfa.title} intro={t.auth.mfa.intro}>
+      <Suspense fallback={<p className="text-ink-secondary">{t.common.loading}</p>}>
         <MfaStep searchParams={searchParams} />
       </Suspense>
     </AuthShell>
