@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
+import { AddRow, EditDisclosure } from "@/components/ds/add-row";
+import { cardClass } from "@/components/ds/card";
+import { InsetGroupedList, InsetRow } from "@/components/ds/list-row";
+import { PageHeader } from "@/components/ds/page-header";
+import { Section } from "@/components/ds/section";
+import { Tag, type Tone } from "@/components/ds/tag";
 import { ActionButton, ActionForm, Checkbox, Field, Select, TextArea } from "@/components/form";
-import { Badge, PageHeader, Section } from "@/components/ui";
 import {
   addPhaseAction,
   addStepAction,
@@ -19,7 +23,7 @@ import {
 } from "@/features/projects/actions";
 import { getProjectForEditing } from "@/features/projects/queries";
 import { stepTurn, toTurnStep } from "@/features/projects/turn";
-import { formatDate } from "@/lib/format/nb";
+import { formatDate, formatDateShort, formatWeek } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
 import { t } from "@/i18n/nb";
 import { StepFields } from "./step-fields";
@@ -33,21 +37,15 @@ type Editor = NonNullable<Awaited<ReturnType<typeof getProjectForEditing>>>;
 type Phase = Editor["phases"][number];
 type Step = Phase["project_steps"][number];
 
-// Collapsible editing panel; <details> is keyboard and screen-reader friendly out of the box.
-function Disclosure({ summary, children }: { summary: string; children: ReactNode }) {
-  return (
-    <details className="group mt-3">
-      <summary className="cursor-pointer text-sm underline underline-offset-4 hover:no-underline">{summary}</summary>
-      <div className="mt-4 rounded-md border border-line bg-surface p-4 sm:p-6">{children}</div>
-    </details>
-  );
-}
+const stepTone: Record<Step["status"], Tone> = { active: "slate", done: "sage", pending: "neutral", skipped: "neutral" };
+const phaseTone: Record<Phase["status"], Tone> = { active: "slate", done: "sage", pending: "neutral" };
+const projectTone: Record<Editor["project"]["status"], Tone> = { active: "slate", completed: "sage", paused: "amber", archived: "neutral" };
 
 function PhaseFields({ phase }: { phase?: Phase }) {
   return (
     <>
       <Field label={p.phaseName} name="name" required defaultValue={phase?.name ?? ""} />
-      <TextArea label={p.phaseDescription} name="description" rows={2} defaultValue={phase?.description ?? ""} />
+      <TextArea label={p.phaseDescription} name="description" rows={2} grow defaultValue={phase?.description ?? ""} />
       <Select
         label={p.stepModeLabel}
         name="step_mode"
@@ -63,121 +61,117 @@ function StepItem({ step, isFirst, isLast, forms }: { step: Step; isFirst: boole
   const finished = step.status === "done" || step.status === "skipped";
 
   return (
-    <li className="py-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className={`font-medium ${finished ? "text-muted line-through decoration-1" : ""}`}>
-            <Link href={`/studio/projects/${step.project_id}/steps/${step.id}`} className="underline-offset-4 hover:underline">
-              {step.title}
-            </Link>
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Badge tone={step.status === "active" ? "accent" : step.status === "done" ? "success" : "muted"}>
-              {labels.stepStatus[step.status]}
-            </Badge>
-            {turn && <Badge>{labels.turn[turn]}</Badge>}
-            <Badge>{labels.type[step.type]}</Badge>
-            <Badge tone="muted">{labels.owner[step.owner]}</Badge>
-            {!step.visible_to_client && <Badge tone="muted">{labels.hidden}</Badge>}
-            {step.due_date && <Badge tone="muted">{p.due(formatDate(step.due_date))}</Badge>}
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+    <InsetRow
+      actions={
+        <>
           {step.status === "active" && (
             <>
-              <ActionButton action={completeStepAction.bind(null, step.id, false)} label={p.markDone} />
-              <ActionButton action={completeStepAction.bind(null, step.id, true)} label={p.skip} />
+              <ActionButton action={completeStepAction.bind(null, step.id, false)} label={p.markDone} variant="secondary" />
+              <ActionButton action={completeStepAction.bind(null, step.id, true)} label={p.skip} variant="ghost" />
             </>
           )}
-          {step.status === "pending" && <ActionButton action={completeStepAction.bind(null, step.id, true)} label={p.skip} />}
-          {finished && <ActionButton action={reopenStepAction.bind(null, step.id)} label={p.reopen} />}
-          {!isFirst && <ActionButton action={moveStepAction.bind(null, step.id, -1)} label="↑" ariaLabel={p.moveUp(step.title)} />}
-          {!isLast && <ActionButton action={moveStepAction.bind(null, step.id, 1)} label="↓" ariaLabel={p.moveDown(step.title)} />}
+          {step.status === "pending" && <ActionButton action={completeStepAction.bind(null, step.id, true)} label={p.skip} variant="ghost" />}
+          {finished && <ActionButton action={reopenStepAction.bind(null, step.id)} label={p.reopen} variant="ghost" />}
+          {!isFirst && <ActionButton action={moveStepAction.bind(null, step.id, -1)} label="↑" ariaLabel={p.moveUp(step.title)} variant="ghost" />}
+          {!isLast && <ActionButton action={moveStepAction.bind(null, step.id, 1)} label="↓" ariaLabel={p.moveDown(step.title)} variant="ghost" />}
+        </>
+      }
+    >
+      <div className="flex flex-col gap-1.5 py-2">
+        <p className={`font-medium ${finished ? "text-ink-secondary line-through decoration-1" : ""}`}>
+          <Link href={`/studio/projects/${step.project_id}/steps/${step.id}`} className="underline-offset-3 hover:underline hover:decoration-focus">
+            {step.title}
+          </Link>
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          <Tag tone={stepTone[step.status]}>{labels.stepStatus[step.status]}</Tag>
+          {turn && <Tag tone={turn === "client" ? "slate" : "amber"}>{labels.turn[turn]}</Tag>}
+          <Tag>{labels.type[step.type]}</Tag>
+          <Tag>{labels.owner[step.owner]}</Tag>
+          {!step.visible_to_client && <Tag>{labels.hidden}</Tag>}
+          {step.due_date && <Tag>{p.due(`${formatDateShort(step.due_date)}, ${formatWeek(step.due_date)}`)}</Tag>}
         </div>
+        <EditDisclosure label={p.editStep(step.title)}>
+          <ActionForm action={updateStepAction.bind(null, step.id)} submitLabel={p.saveStep} pendingLabel={t.common.loading}>
+            <StepFields defaults={step} forms={forms} />
+          </ActionForm>
+          {/* Destructive and rare, so it lives with the edit form rather than in every row. */}
+          <div className="mt-4">
+            <ActionButton action={deleteStepAction.bind(null, step.id)} label={p.deleteStep(step.title)} confirm={p.confirmDeleteStep(step.title)} variant="destructive" />
+          </div>
+        </EditDisclosure>
       </div>
-      <Disclosure summary={p.editStep(step.title)}>
-        <ActionForm action={updateStepAction.bind(null, step.id)} submitLabel={p.saveStep} pendingLabel={t.common.loading}>
-          <StepFields defaults={step} forms={forms} />
-        </ActionForm>
-        {/* Destructive and rare, so it lives with the edit form rather than in every row. */}
-        <div className="mt-6 border-t border-line pt-4">
-          <ActionButton
-            action={deleteStepAction.bind(null, step.id)}
-            label={p.deleteStep(step.title)}
-            confirm={p.confirmDeleteStep(step.title)}
-            variant="danger"
-          />
-        </div>
-      </Disclosure>
-    </li>
+    </InsetRow>
   );
 }
 
 function StepList({ phase, forms }: { phase: Phase; forms: Editor["forms"] }) {
   return (
-    <ol className="mt-4 divide-y divide-line border-y border-line">
+    <InsetGroupedList inCard={false} ordered label={phase.name}>
       {phase.project_steps.map((step, i) => (
         <StepItem key={step.id} step={step} isFirst={i === 0} isLast={i === phase.project_steps.length - 1} forms={forms} />
       ))}
-    </ol>
+    </InsetGroupedList>
   );
 }
 
-function PhaseSection({ phase, isFirst, isLast, forms }: { phase: Phase; isFirst: boolean; isLast: boolean; forms: Editor["forms"] }) {
+// Each phase is a card: heading, status, the steps as an inset grouped list, and "Legg til steg".
+function PhaseCard({ phase, isFirst, isLast, forms }: { phase: Phase; isFirst: boolean; isLast: boolean; forms: Editor["forms"] }) {
   const headingId = `phase-${phase.id}`;
   return (
-    <section aria-labelledby={headingId} className="mb-10 rounded-lg border border-line bg-surface/60 p-4 sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 id={headingId} className="font-serif text-2xl">
-            <span className="text-muted">{phase.position}. </span>
-            {phase.name}
-          </h3>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Badge tone={phase.status === "active" ? "accent" : phase.status === "done" ? "success" : "muted"}>
-              {labels.phaseStatus[phase.status]}
-            </Badge>
-            <Badge tone="muted">{p.stepMode[phase.step_mode]}</Badge>
+    <section aria-labelledby={headingId} className={`flex flex-col gap-2 py-4 ${cardClass("card", false)}`}>
+      <div className="flex flex-col gap-2 px-4 md:px-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <h3 id={headingId} className="text-title-m">
+              <span className="text-ink-secondary">{phase.position}. </span>
+              {phase.name}
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              <Tag tone={phaseTone[phase.status]}>{labels.phaseStatus[phase.status]}</Tag>
+              <Tag>{p.stepMode[phase.step_mode]}</Tag>
+            </div>
+          </div>
+          <div className="flex gap-1">
+            {!isFirst && <ActionButton action={movePhaseAction.bind(null, phase.id, -1)} label="↑" ariaLabel={p.moveUp(phase.name)} variant="ghost" />}
+            {!isLast && <ActionButton action={movePhaseAction.bind(null, phase.id, 1)} label="↓" ariaLabel={p.moveDown(phase.name)} variant="ghost" />}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {!isFirst && <ActionButton action={movePhaseAction.bind(null, phase.id, -1)} label="↑" ariaLabel={p.moveUp(phase.name)} />}
-          {!isLast && <ActionButton action={movePhaseAction.bind(null, phase.id, 1)} label="↓" ariaLabel={p.moveDown(phase.name)} />}
-          <ActionButton
-            action={deletePhaseAction.bind(null, phase.id)}
-            label={t.common.delete}
-            ariaLabel={p.deletePhase(phase.name)}
-            confirm={p.confirmDeletePhase(phase.name)}
-            variant="danger"
-          />
-        </div>
+        <EditDisclosure label={p.editPhase(phase.name)}>
+          <ActionForm action={updatePhaseAction.bind(null, phase.id)} submitLabel={p.savePhase} pendingLabel={t.common.loading}>
+            <PhaseFields phase={phase} />
+          </ActionForm>
+          <div className="mt-4">
+            <ActionButton action={deletePhaseAction.bind(null, phase.id)} label={p.deletePhase(phase.name)} confirm={p.confirmDeletePhase(phase.name)} variant="destructive" />
+          </div>
+        </EditDisclosure>
       </div>
 
-      <Disclosure summary={p.editPhase(phase.name)}>
-        <ActionForm action={updatePhaseAction.bind(null, phase.id)} submitLabel={p.savePhase} pendingLabel={t.common.loading}>
-          <PhaseFields phase={phase} />
-        </ActionForm>
-      </Disclosure>
-
       {phase.project_steps.length === 0 ? (
-        <p className="mt-4 text-muted">{p.noSteps}</p>
+        <p className="px-4 text-ink-secondary md:px-5">{p.noSteps}</p>
       ) : phase.status === "done" ? (
         // Finished phases fold away so the active work stays near the top.
-        <details className="mt-4">
-          <summary className="cursor-pointer text-sm underline underline-offset-4 hover:no-underline">
+        <details className="px-2">
+          <summary className="inline-flex min-h-11 cursor-pointer items-center rounded-control px-2 text-small text-ink-secondary hover:bg-hover hover:text-ink md:min-h-9">
             {p.showSteps(phase.project_steps.length)}
           </summary>
-          <StepList phase={phase} forms={forms} />
+          <div className="-mx-2">
+            <StepList phase={phase} forms={forms} />
+          </div>
         </details>
       ) : (
         <StepList phase={phase} forms={forms} />
       )}
 
-      <Disclosure summary={p.addStep}>
-        <ActionForm action={addStepAction.bind(null, phase.id)} submitLabel={p.addStep} pendingLabel={t.common.loading}>
-          <StepFields forms={forms} />
-        </ActionForm>
-      </Disclosure>
+      <div className="px-4 pt-2 md:px-5">
+        <AddRow label={p.addStep}>
+          <div className="rounded-inset bg-inset p-4">
+            <ActionForm action={addStepAction.bind(null, phase.id)} submitLabel={p.addStep} pendingLabel={t.common.loading}>
+              <StepFields forms={forms} />
+            </ActionForm>
+          </div>
+        </AddRow>
+      </div>
     </section>
   );
 }
@@ -190,49 +184,58 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
   const { project, phases, forms } = editor;
 
   return (
-    <>
+    <div className="flex flex-col gap-10">
       <PageHeader
         title={project.name}
-        eyebrow={
-          project.clients && (
-            <Link href={`/studio/clients/${project.clients.id}`} className="underline underline-offset-4 hover:no-underline">
-              {project.clients.name}
-            </Link>
-          )
-        }
-        actions={<Badge>{labels.projectStatus[project.status]}</Badge>}
+        trail={project.clients ? [{ label: project.clients.name, href: `/studio/clients/${project.clients.id}` }] : []}
+        properties={[
+          { label: p.status, value: <Tag tone={projectTone[project.status]}>{labels.projectStatus[project.status]}</Tag> },
+          { label: p.template, value: project.process_templates?.name },
+          { label: p.startDate, value: project.start_date ? formatDate(project.start_date) : null },
+          {
+            label: p.targetLaunch,
+            value: project.target_launch_date ? `${formatDate(project.target_launch_date)}, ${formatWeek(project.target_launch_date)}` : null,
+          },
+        ]}
       />
 
-      <div className="grid gap-x-12 lg:grid-cols-[2fr_1fr]">
-        <Section id="phases" title={p.phasesTitle}>
+      <div className="grid gap-10 lg:grid-cols-[2fr_1fr]">
+        <section aria-labelledby="phases" className="flex flex-col gap-4">
+          <h2 id="phases" className="text-title-l">
+            {p.phasesTitle}
+          </h2>
           {phases.map((phase, i) => (
-            <PhaseSection key={phase.id} phase={phase} isFirst={i === 0} isLast={i === phases.length - 1} forms={forms} />
+            <PhaseCard key={phase.id} phase={phase} isFirst={i === 0} isLast={i === phases.length - 1} forms={forms} />
           ))}
-          <Disclosure summary={p.addPhase}>
-            <ActionForm action={addPhaseAction.bind(null, project.id)} submitLabel={p.addPhase} pendingLabel={t.common.loading}>
-              <PhaseFields />
-            </ActionForm>
-          </Disclosure>
-        </Section>
+          <AddRow label={p.addPhase}>
+            <div className={cardClass("card")}>
+              <ActionForm action={addPhaseAction.bind(null, project.id)} submitLabel={p.addPhase} pendingLabel={t.common.loading}>
+                <PhaseFields />
+              </ActionForm>
+            </div>
+          </AddRow>
+        </section>
 
-        <Section id="settings" title={p.settings}>
-          <ActionForm action={updateProjectAction.bind(null, project.id)} submitLabel={p.save} pendingLabel={t.common.loading}>
-            <Field label={p.name} name="name" required defaultValue={project.name} />
-            <Select
-              label={p.status}
-              name="status"
-              defaultValue={project.status}
-              options={(["active", "paused", "completed", "archived"] as const).map((s) => ({ value: s, label: labels.projectStatus[s] }))}
-            />
-            <Field label={p.startDate} name="start_date" type="date" defaultValue={project.start_date ?? ""} />
-            <Field label={p.targetLaunch} name="target_launch_date" type="date" defaultValue={project.target_launch_date ?? ""} />
-            <Field label={p.stagingUrl} hint={p.urlHint} name="staging_url" type="url" defaultValue={project.staging_url ?? ""} />
-            <Field label={p.liveUrl} hint={p.urlHint} name="live_url" type="url" defaultValue={project.live_url ?? ""} />
-            <Field label={p.cmsUrl} hint={p.urlHint} name="cms_url" type="url" defaultValue={project.cms_url ?? ""} />
-            <Checkbox label={p.remindersEnabled} name="reminders_enabled" defaultChecked={project.reminders_enabled} />
-          </ActionForm>
-        </Section>
+        <div>
+          <Section id="settings" title={p.settings}>
+            <ActionForm action={updateProjectAction.bind(null, project.id)} submitLabel={p.save} pendingLabel={t.common.loading}>
+              <Field label={p.name} name="name" required defaultValue={project.name} />
+              <Select
+                label={p.status}
+                name="status"
+                defaultValue={project.status}
+                options={(["active", "paused", "completed", "archived"] as const).map((s) => ({ value: s, label: labels.projectStatus[s] }))}
+              />
+              <Field label={p.startDate} name="start_date" type="date" defaultValue={project.start_date ?? ""} />
+              <Field label={p.targetLaunch} name="target_launch_date" type="date" defaultValue={project.target_launch_date ?? ""} />
+              <Field label={p.stagingUrl} hint={p.urlHint} name="staging_url" type="url" defaultValue={project.staging_url ?? ""} />
+              <Field label={p.liveUrl} hint={p.urlHint} name="live_url" type="url" defaultValue={project.live_url ?? ""} />
+              <Field label={p.cmsUrl} hint={p.urlHint} name="cms_url" type="url" defaultValue={project.cms_url ?? ""} />
+              <Checkbox label={p.remindersEnabled} name="reminders_enabled" defaultChecked={project.reminders_enabled} />
+            </ActionForm>
+          </Section>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

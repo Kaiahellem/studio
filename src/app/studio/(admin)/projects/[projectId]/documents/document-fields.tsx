@@ -22,7 +22,7 @@ export type DocumentDefaults = {
 export function DocumentFields({ defaults = {}, steps }: { defaults?: DocumentDefaults; steps: { id: string; title: string }[] }) {
   return (
     <>
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <Select
           label={d.type}
           name="type"
@@ -37,7 +37,7 @@ export function DocumentFields({ defaults = {}, steps }: { defaults?: DocumentDe
         />
       </div>
       <Field label={d.title} name="title" required defaultValue={defaults.title ?? ""} />
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field label={d.date} name="document_date" type="date" defaultValue={defaults.document_date ?? ""} />
         <Select
           label={d.step}
@@ -82,14 +82,16 @@ export function AddDocumentForm({ projectId, steps }: { projectId: string; steps
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
       <DocumentFields steps={steps} />
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <label htmlFor="document-file" className="text-sm font-medium">
+          <label htmlFor="document-file" className="text-label">
             {d.file}
           </label>
-          <input ref={fileRef} id="document-file" name="file" type="file" accept="application/pdf,image/*" className="text-sm" />
+          <input ref={fileRef} id="document-file" name="file" type="file" accept="application/pdf,image/*"
+            className="text-small text-ink-secondary file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-control file:border file:border-control-border file:bg-card file:px-3 file:text-body file:text-ink hover:file:bg-hover md:file:min-h-9"
+          />
         </div>
         <Field label={d.link} hint={d.linkHint} name="external_url" type="url" />
       </div>
