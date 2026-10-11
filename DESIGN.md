@@ -19,44 +19,43 @@ Define all colours as CSS variables (and in the Tailwind theme) and never use ra
 
 ### Surfaces, text and lines
 
-| Token | Light | Dark | Use |
-|---|---|---|---|
-| `--canvas` | `#F7F7F8` | `#111113` | App background, including the sidebar |
-| `--card` | `#FFFFFF` | `#1C1C1F` | Cards, menus, dialogs |
-| `--inset` | `#F4F4F5` | `#26262A` | Grey areas inside cards, link chips, drop zones |
-| `--hover` | `#EDEDEF` | `#2A2A2E` | Hover on rows and navigation items |
-| `--selected` | `#E9E9EC` | `#303035` | Selected navigation item, pressed rows |
-| `--ink` | `#18181B` | `#EDEDEF` | Headings, body text, active navigation |
-| `--ink-secondary` | `#5E5E66` | `#A1A1A9` | Metadata, timestamps, helper text, placeholders |
-| `--ink-disabled` | `#A1A1AA` | `#6E6E76` | Disabled text and purely decorative elements only |
-| `--separator` | `#ECECEE` | `rgba(255,255,255,0.07)` | Inset separators between rows inside a card |
-| `--control-border` | `#8A8A93` | `#7C7C85` | Borders on inputs, checkboxes, radio buttons, secondary buttons |
-| `--focus` | `#2B66D6` | `#6E9BF0` | Focus ring, and link underline on hover |
+| Token | Value | Use |
+|---|---|---|
+| `--canvas` | `#F7F7F8` | App background, including the sidebar |
+| `--card` | `#FFFFFF` | Cards, menus, dialogs |
+| `--inset` | `#F4F4F5` | Grey areas inside cards, link chips, drop zones |
+| `--hover` | `#EDEDEF` | Hover on rows and navigation items |
+| `--selected` | `#E9E9EC` | Selected navigation item, pressed rows |
+| `--ink` | `#18181B` | Headings, body text, active navigation |
+| `--ink-secondary` | `#5E5E66` | Metadata, timestamps, helper text, placeholders |
+| `--ink-disabled` | `#A1A1AA` | Disabled text and purely decorative elements only |
+| `--separator` | `#ECECEE` | Inset separators between rows inside a card |
+| `--control-border` | `#8A8A93` | Borders on inputs, checkboxes, radio buttons, secondary buttons |
+| `--focus` | `#2B66D6` | Focus ring, and link underline on hover |
 
 Rules:
 - **No borders on cards, sections or callouts.** The only lines in the interface are inset row separators inside cards, and the borders on form controls.
 - Form controls always keep `--control-border`. It meets the 3:1 requirement for interface components on `--card` and `--inset`, so people can see where to type and click.
-- In dark mode shadows are barely visible, so cards also get a 1px border of `rgba(255,255,255,0.06)`. This is the one exception to the no-border rule.
 
 ### Buttons
 
-| Token | Light | Dark |
-|---|---|---|
-| `--primary-bg` | `#18181B` | `#EDEDEF` |
-| `--primary-bg-hover` | `#3F3F46` | `#FFFFFF` |
-| `--primary-text` | `#FFFFFF` | `#18181B` |
+| Token | Value |
+|---|---|
+| `--primary-bg` | `#18181B` |
+| `--primary-bg-hover` | `#3F3F46` |
+| `--primary-text` | `#FFFFFF` |
 
 ### Status
 
 Status is always shown as text in a tag, never by colour alone.
 
-| Status | Light text / background | Dark text / background | Use |
-|---|---|---|---|
-| Neutral | `#5E5E66` / `#F1F1F3` | `#C9C9C6` / `#2E2F33` | Pending, not started |
-| Slate (active) | `#4A6572` / `#EEF3F6` | `#AFC6D2` / `#23323B` | In progress, in review, "Din tur" |
-| Sage (done) | `#5B6B5C` / `#EDF3EE` | `#B7CAB8` / `#263027` | Approved, delivered, done |
-| Amber (attention) | `#8A5C2C` / `#FAF4EC` | `#DDB685` / `#3A2F22` | Waiting, needs attention, rounds almost used |
-| Brick (critical) | `#9F2F2D` / `#FDEBEC` | `#F2B8B5` / `#3E2424` | Changes requested, urgent, errors |
+| Status | Text / background | Use |
+|---|---|---|
+| Neutral | `#5E5E66` / `#F1F1F3` | Pending, not started |
+| Slate (active) | `#4A6572` / `#EEF3F6` | In progress, in review, "Din tur" |
+| Sage (done) | `#5B6B5C` / `#EDF3EE` | Approved, delivered, done |
+| Amber (attention) | `#8A5C2C` / `#FAF4EC` | Waiting, needs attention, rounds almost used |
+| Brick (critical) | `#9F2F2D` / `#FDEBEC` | Changes requested, urgent, errors |
 
 Every text/background pair in this file has been checked against WCAG 2.1 AA (4.5:1 for text, 3:1 for interface components). If you add a new colour, check it the same way.
 
@@ -67,7 +66,7 @@ Fonts, loaded with `next/font` so they are self-hosted (no requests to Google fr
 - **JetBrains Mono** only for technical metadata on the admin side: IDs, version numbers, timestamps in dense tables, cost figures in logs. Never on the client side.
 
 | Style | Size / line height | Weight | Letter spacing | Use |
-|---|---|---|---|---|
+|---|---|---|---|
 | Title XL | 40/48 (mobile 30/38) | 600 | −0.03em | One page title per page |
 | Title L | 28/36 | 600 | −0.02em | Section headings |
 | Title M | 20/28 | 600 | −0.015em | Sub-sections |
@@ -103,7 +102,7 @@ Rules:
 
 Three levels. Shadows are soft, layered and neutral, never coloured.
 
-| Level | Use | Shadow (light mode) |
+| Level | Use | Shadow |
 |---|---|---|
 | Card | Every card | `0 1px 2px rgba(16,16,20,0.04), 0 2px 8px rgba(16,16,20,0.04), 0 8px 24px rgba(16,16,20,0.04)` |
 | Raised | "Din tur", hovered clickable cards | `0 1px 2px rgba(16,16,20,0.05), 0 4px 12px rgba(16,16,20,0.06), 0 12px 32px rgba(16,16,20,0.06)` |
@@ -237,9 +236,9 @@ Everything in BRIEF.md applies. For this design in particular:
 
 ## How to apply this
 
-1. Put all tokens in one place: CSS variables for light and dark mode (following `prefers-color-scheme`), mapped into the Tailwind theme.
+1. Put all tokens in one place: CSS variables for light mode (the app is light only, with `color-scheme: light`), mapped into the Tailwind theme.
 2. Build the shared components first: Card (with Card, Raised and Overlay levels), Inset, Breadcrumbs, PageHeader, PropertiesCard, DinTurCard, InsetGroupedList, Timeline, ToggleRow, ChecklistItem, ReviewRound, LinkChip, Tag, Button, Input, Upload, AddRow, CommentThread, Menu, Dialog, EmptyState.
 3. Put the Norwegian formatting helpers (date, time, relative time, week number, money, number, phone, org number, postnummer) in one module with unit tests.
 4. Update the pages one at a time to use the components.
 5. If shadcn/ui is used, restyle its components to these tokens instead of keeping its defaults.
-6. After each page, check it at 375px and 1280px, in light and dark mode, with keyboard only, and with a long Norwegian word in every label. Check specifically that no card, section or callout has a border (except cards in dark mode), and that no warm grey has crept in.
+6. After each page, check it at 375px and 1280px, with keyboard only, and with a long Norwegian word in every label. Check specifically that no card, section or callout has a border, and that no warm grey has crept in.
