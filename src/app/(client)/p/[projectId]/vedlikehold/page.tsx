@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buttonClass } from "@/components/ui";
+import { ButtonLink } from "@/components/ds/button";
+import { Card } from "@/components/ds/card";
+import { InsetGroupedList, InsetRow } from "@/components/ds/list-row";
+import { PageHeader } from "@/components/ds/page-header";
+import { Tag } from "@/components/ds/tag";
 import { HoursMeter } from "@/features/maintenance/components";
 import { getMaintenanceForClient } from "@/features/maintenance/queries";
 import { formatDate, formatMinutes, formatMonth, formatOre, todayInOslo } from "@/lib/format/nb";
@@ -26,31 +29,39 @@ export default async function MaintenancePage({ params }: PageProps<"/p/[project
   }
 
   return (
-    <div className="flex flex-col gap-12">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-serif text-4xl tracking-tight">{m.heading}</h1>
-        <Link href={`/p/${projectId}/endringer/ny`} className={`${buttonClass.primary} h-12 w-full text-base sm:w-auto`}>
-          {t.client.requests.new}
-        </Link>
-      </div>
+    <div className="flex flex-col gap-10">
+      <PageHeader
+        title={m.heading}
+        trail={[{ label: t.client.nav.overview, href: `/p/${projectId}` }]}
+        actions={
+          <ButtonLink href={`/p/${projectId}/endringer/ny`} variant="primary">
+            {t.client.requests.new}
+          </ButtonLink>
+        }
+        properties={
+          agreement && plan
+            ? [
+                { label: m.agreement, value: plan.name },
+                { label: t.client.step.properties.status, value: <Tag tone={agreement.status === "active" ? "sage" : "neutral"}>{m.status[agreement.status]}</Tag> },
+                { label: m.priceLabel, value: m.perMonth(formatOre(agreement.price_override_ore ?? plan.monthly_price_ore)) },
+                { label: m.responseTime, value: plan.response_time },
+                { label: m.notice, value: plan.notice_period },
+                { label: m.sinceLabel, value: formatDate(agreement.start_date) },
+              ]
+            : []
+        }
+      />
 
       {!agreement || !plan ? (
-        <p className="max-w-prose text-lg leading-relaxed text-muted">{m.noAgreement}</p>
+        <Card>
+          <p className="text-body">{m.noAgreement}</p>
+        </Card>
       ) : (
-        <section aria-labelledby="agreement-heading" className="flex flex-col gap-6 rounded-xl border border-line bg-surface p-6 sm:p-8">
-          <div>
-            <p className="text-sm text-muted">
-              {m.agreement} · {m.status[agreement.status]} · {m.since(formatDate(agreement.start_date))}
-            </p>
-            <h2 id="agreement-heading" className="font-serif text-3xl">
-              {plan.name}
-            </h2>
-            <p className="text-muted">{m.perMonth(formatOre(agreement.price_override_ore ?? plan.monthly_price_ore))}</p>
-          </div>
+        <Card className="flex flex-col gap-6">
           {usage && <HoursMeter used={usage.used_minutes} included={usage.included_minutes} month={formatMonth(todayInOslo())} />}
           {plan.includes.length > 0 && (
-            <div>
-              <h3 className="mb-2 font-medium">{m.includes}</h3>
+            <div className="rounded-inset bg-inset p-4">
+              <h2 className="mb-2 text-title-s">{m.includes}</h2>
               <ul className="flex list-disc flex-col gap-1 pl-5">
                 {plan.includes.map((item) => (
                   <li key={item}>{item}</li>
@@ -58,45 +69,33 @@ export default async function MaintenancePage({ params }: PageProps<"/p/[project
               </ul>
             </div>
           )}
-          <dl className="grid gap-4 sm:grid-cols-2">
-            {plan.response_time && (
-              <div>
-                <dt className="text-sm text-muted">{m.responseTime}</dt>
-                <dd>{plan.response_time}</dd>
-              </div>
-            )}
-            {plan.notice_period && (
-              <div>
-                <dt className="text-sm text-muted">{m.notice}</dt>
-                <dd>{plan.notice_period}</dd>
-              </div>
-            )}
-          </dl>
-        </section>
+        </Card>
       )}
 
-      <section aria-labelledby="log-heading" className="flex flex-col gap-6">
-        <h2 id="log-heading" className="font-serif text-2xl">
+      <section aria-labelledby="log-heading" className="flex flex-col gap-4">
+        <h2 id="log-heading" className="text-title-l">
           {m.log}
         </h2>
         {log.length === 0 ? (
-          <p className="text-muted">{m.logEmpty}</p>
+          <p className="text-ink-secondary">{m.logEmpty}</p>
         ) : (
           [...months.entries()].map(([month, entries]) => (
-            <div key={month}>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.1em] text-muted">{formatMonth(`${month}-01`)}</h3>
-              <ul className="divide-y divide-line border-y border-line">
+            <div key={month} className="flex flex-col gap-2">
+              <h3 className="text-title-s">{formatMonth(`${month}-01`)}</h3>
+              <InsetGroupedList label={formatMonth(`${month}-01`)}>
                 {entries.map((e) => (
-                  <li key={e.id} className="flex flex-col gap-1 py-3">
-                    <p className="font-medium">{e.title}</p>
-                    {e.description && <p className="whitespace-pre-line text-sm leading-relaxed">{e.description}</p>}
-                    <p className="text-sm text-muted">
-                      {formatDate(e.entry_date)}
-                      {e.minutes ? ` · ${m.timeSpent(formatMinutes(e.minutes))}` : ""}
-                    </p>
-                  </li>
+                  <InsetRow key={e.id}>
+                    <div className="flex flex-col gap-0.5 py-1">
+                      <p className="font-medium">{e.title}</p>
+                      {e.description && <p className="whitespace-pre-line text-small">{e.description}</p>}
+                      <p className="text-small text-ink-secondary">
+                        {formatDate(e.entry_date)}
+                        {e.minutes ? ` · ${m.timeSpent(formatMinutes(e.minutes))}` : ""}
+                      </p>
+                    </div>
+                  </InsetRow>
                 ))}
-              </ul>
+              </InsetGroupedList>
             </div>
           ))
         )}

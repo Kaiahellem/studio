@@ -13,7 +13,7 @@ export function HoursMeter({ used, included, month }: { used: number; included: 
     <div className="flex flex-col gap-2">
       <p className="text-label text-ink-secondary">{m.hoursThisMonth(month)}</p>
       <p className="text-title-m">{m.hoursOf(formatMinutes(used), formatMinutes(included))}</p>
-      <div aria-hidden="true" className="h-1.5 w-full overflow-hidden rounded-sm bg-active">
+      <div aria-hidden="true" className="h-1.5 w-full overflow-hidden rounded-full bg-selected">
         <div className={`h-full ${over ? "bg-brick-fg" : "bg-slate-fg"}`} style={{ width: `${Math.round(share * 100)}%` }} />
       </div>
       {over && <p className="text-small text-amber-fg">{m.over}</p>}

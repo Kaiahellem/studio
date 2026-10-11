@@ -29,7 +29,7 @@ async function ClientShell({ children }: { children: ReactNode }) {
   return (
     <AppShell
       brand={
-        <Link href="/" className="rounded-sm">
+        <Link href="/" className="rounded-nav">
           {projects[0]?.clients?.name ?? t.app.name}
         </Link>
       }

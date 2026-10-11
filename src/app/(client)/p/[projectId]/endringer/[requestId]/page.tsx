@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Callout } from "@/components/ds/callout";
+import { Card } from "@/components/ds/card";
+import { PageHeader } from "@/components/ds/page-header";
+import { Section } from "@/components/ds/section";
+import { Tag } from "@/components/ds/tag";
 import { FormMessage } from "@/components/form";
 import { createRequestUploadAction, registerRequestUploadAction } from "@/features/maintenance/actions";
 import { RequestStatus } from "@/features/maintenance/components";
@@ -29,60 +33,48 @@ export default async function RequestPage({ params, searchParams }: PageProps<"/
 
   return (
     <article className="flex flex-col gap-10">
-      <Link href={`/p/${projectId}/endringer`} className="text-sm underline underline-offset-4 hover:no-underline">
-        <span aria-hidden="true">← </span>
-        {r.heading}
-      </Link>
-      {query.sendt === "1" && <FormMessage message={r.sent} />}
+      <div className="flex flex-col gap-6">
+        {query.sendt === "1" && <FormMessage message={r.sent} />}
+        <PageHeader
+          title={request.title}
+          trail={[{ label: r.heading, href: `/p/${projectId}/endringer` }]}
+          properties={[
+            { label: t.client.step.properties.status, value: <RequestStatus status={request.status} /> },
+            { label: r.urgency, value: request.urgency === "urgent" ? <Tag tone="brick">{r.urgent}</Tag> : null },
+            { label: t.studio.requests.billing, value: r.billing[request.billing] },
+            { label: t.studio.requests.estimate, value: request.estimate_minutes !== null ? formatMinutes(request.estimate_minutes) : null },
+            { label: r.usedLabel, value: minutes > 0 ? formatMinutes(minutes) : null },
+            { label: r.sentLabel, value: `${formatDate(request.created_at)} · ${createdBy}` },
+          ]}
+        />
+      </div>
 
-      <header className="flex flex-col gap-4">
-        <p className="text-muted">
-          {r.sentOn(formatDate(request.created_at))} · {createdBy}
-        </p>
-        <h1 className="font-serif text-4xl leading-tight tracking-tight">{request.title}</h1>
-        <div className="flex flex-wrap items-center gap-3">
-          <RequestStatus status={request.status} />
-          {request.urgency === "urgent" && <span className="text-sm font-medium text-danger">{r.urgent}</span>}
-        </div>
-      </header>
+      {request.description && (
+        <Section id="description" title={r.description}>
+          <p className="whitespace-pre-line text-body-l">{request.description}</p>
+        </Section>
+      )}
 
-      <dl className="grid gap-4 rounded-xl border border-line bg-surface p-6 sm:grid-cols-3">
-        <div>
-          <dt className="text-sm text-muted">{t.studio.requests.billing}</dt>
-          <dd className="font-medium">{r.billing[request.billing]}</dd>
-        </div>
-        {request.estimate_minutes !== null && (
-          <div>
-            <dt className="text-sm text-muted">{t.studio.requests.estimate}</dt>
-            <dd className="font-medium">{formatMinutes(request.estimate_minutes)}</dd>
+      <Section id="attachments" title={r.attachments} card={!open && files.length === 0}>
+        {open ? (
+          <div className="flex flex-col gap-4">
+            <Card>
+              <UploadPanel
+                create={createRequestUploadAction.bind(null, request.id)}
+                register={registerRequestUploadAction.bind(null, request.id)}
+                maxBytes={upload.maxBytes}
+                allowedTypes={upload.allowedTypes}
+              />
+            </Card>
+            {files.length > 0 && <FileList files={files} label={r.attachments} />}
           </div>
+        ) : files.length > 0 ? (
+          <FileList files={files} label={r.attachments} />
+        ) : (
+          <Callout>{r.closed}</Callout>
         )}
-        {minutes > 0 && (
-          <div>
-            <dt className="text-sm text-muted">{r.usedLabel}</dt>
-            <dd className="font-medium">{formatMinutes(minutes)}</dd>
-          </div>
-        )}
-      </dl>
+      </Section>
 
-      {request.description && <p className="max-w-prose whitespace-pre-line text-lg leading-relaxed">{request.description}</p>}
-
-      <section aria-labelledby="attachments-heading" className="flex flex-col gap-4">
-        <h2 id="attachments-heading" className="font-serif text-2xl">
-          {r.attachments}
-        </h2>
-        {open && (
-          <UploadPanel
-            create={createRequestUploadAction.bind(null, request.id)}
-            register={registerRequestUploadAction.bind(null, request.id)}
-            maxBytes={upload.maxBytes}
-            allowedTypes={upload.allowedTypes}
-          />
-        )}
-        <FileList files={files} />
-      </section>
-
-      {!open && <p className="text-muted">{r.closed}</p>}
       <CommentThread target={{ changeRequestId: request.id }} comments={comments} />
     </article>
   );

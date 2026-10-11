@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { Icon } from "@/components/ds/icon";
+import { InsetGroupedList, InsetRow } from "@/components/ds/list-row";
+import { PageHeader } from "@/components/ds/page-header";
 import { getMyProjects } from "@/features/hub/queries";
 import { t } from "@/i18n/nb";
 
@@ -14,24 +18,24 @@ export default async function ClientHome() {
   if (projects.length === 1) redirect(`/p/${projects[0].id}`);
 
   return (
-    <div className="flex flex-col gap-8">
-      <header>
-        <p className="mb-2 text-muted">{c.greeting(firstName)}</p>
-        <h1 className="font-serif text-4xl tracking-tight">{c.projectsTitle}</h1>
-      </header>
+    <div className="flex flex-col gap-6">
+      <PageHeader title={c.projectsTitle} eyebrow={c.greeting(firstName)} />
       {projects.length === 0 ? (
-        <p className="text-muted">{c.noProjects}</p>
+        <p className="text-ink-secondary">{c.noProjects}</p>
       ) : (
-        <ul className="divide-y divide-line border-y border-line">
+        <InsetGroupedList label={c.projectsTitle}>
           {projects.map((p) => (
-            <li key={p.id}>
-              <Link href={`/p/${p.id}`} className="flex flex-col gap-1 py-5 hover:bg-surface/60">
-                <span className="text-lg font-medium">{p.name}</span>
-                <span className="text-sm text-muted">{p.clients?.name}</span>
+            <InsetRow key={p.id}>
+              <Link href={`/p/${p.id}`} className="flex items-center justify-between gap-3 py-1">
+                <span>
+                  <span className="block font-medium">{p.name}</span>
+                  <span className="text-small text-ink-secondary">{p.clients?.name}</span>
+                </span>
+                <Icon icon={ChevronRight} className="text-ink-secondary" />
               </Link>
-            </li>
+            </InsetRow>
           ))}
-        </ul>
+        </InsetGroupedList>
       )}
     </div>
   );

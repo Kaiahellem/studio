@@ -23,7 +23,7 @@ export function CodeForm({ next }: { next: string }) {
           pattern="[0-9]{6}"
           maxLength={6}
           required
-          className="font-mono text-xl tracking-[0.4em]"
+          className="tracking-[0.4em] tabular-nums"
           error={verifyState?.error}
         />
         <SubmitButton full pendingText={t.auth.checkEmail.verifying}>{t.auth.checkEmail.submit}</SubmitButton>

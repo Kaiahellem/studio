@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: t.privacy.title };
 export default function PrivacyPage() {
   return (
     <AuthShell title={t.privacy.title}>
-      <p className="text-lg leading-relaxed text-muted">{t.privacy.placeholder}</p>
+      <p className="text-body-l">{t.privacy.placeholder}</p>
     </AuthShell>
   );
 }

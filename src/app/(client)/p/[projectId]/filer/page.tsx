@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/ds/page-header";
+import { Section } from "@/components/ds/section";
 import { getFilesForClient } from "@/features/hub/queries";
 import { FileList } from "@/features/steps/components/file-list";
 import { uuid } from "@/lib/forms";
@@ -23,15 +25,14 @@ export default async function FilesPage({ params }: PageProps<"/p/[projectId]/fi
 
   return (
     <div className="flex flex-col gap-10">
-      <h1 className="font-serif text-4xl tracking-tight">{f.heading}</h1>
+      <PageHeader title={f.heading} trail={[{ label: t.client.nav.overview, href: `/p/${projectId}` }]} />
       {files.length === 0 ? (
-        <p className="text-muted">{f.empty}</p>
+        <p className="-mt-4 text-ink-secondary">{f.empty}</p>
       ) : (
-        [...groups.entries()].map(([title, list]) => (
-          <section key={title} aria-label={title} className="flex flex-col gap-3">
-            <h2 className="font-serif text-2xl">{title}</h2>
-            <FileList files={list} />
-          </section>
+        [...groups.entries()].map(([title, list], i) => (
+          <Section key={title} id={`files-${i}`} title={title} card={false}>
+            <FileList files={list} label={title} />
+          </Section>
         ))
       )}
     </div>

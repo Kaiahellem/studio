@@ -20,7 +20,7 @@ async function Confirm({ searchParams }: { searchParams: PageProps<"/auth/confir
 export default function ConfirmPage({ searchParams }: PageProps<"/auth/confirm">) {
   return (
     <AuthShell title={t.auth.confirm.title}>
-      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
+      <Suspense fallback={<p className="text-ink-secondary">{t.common.loading}</p>}>
         <Confirm searchParams={searchParams} />
       </Suspense>
     </AuthShell>

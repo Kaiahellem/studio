@@ -15,16 +15,13 @@ async function LoginFormWithNext({ searchParams }: { searchParams: PageProps<"/l
 
 export default function LoginPage({ searchParams }: PageProps<"/logg-inn">) {
   return (
-    <AuthShell title={t.auth.login.title}>
-      <p className="mb-8 text-lg leading-relaxed text-muted">{t.auth.login.intro}</p>
+    <AuthShell title={t.auth.login.title} intro={t.auth.login.intro}>
       <Suspense fallback={<LoginForm next="/" />}>
         <LoginFormWithNext searchParams={searchParams} />
       </Suspense>
-      <p className="mt-10 text-sm">
-        <Link href="/personvern" className="underline underline-offset-4 hover:no-underline">
-          {t.auth.login.privacyLink}
-        </Link>
-      </p>
+      <Link href="/personvern" className="prose-link text-small text-ink-secondary">
+        {t.auth.login.privacyLink}
+      </Link>
     </AuthShell>
   );
 }

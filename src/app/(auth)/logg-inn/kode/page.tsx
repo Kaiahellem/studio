@@ -17,17 +17,14 @@ async function CodeStep({ searchParams }: { searchParams: PageProps<"/logg-inn/k
 
   return (
     <>
-      <p className="mb-3 text-lg leading-relaxed">{t.auth.checkEmail.body(email)}</p>
-      <p className="mb-8 leading-relaxed text-muted">{t.auth.checkEmail.hint}</p>
+      <div className="flex flex-col gap-2">
+        <p className="text-body">{t.auth.checkEmail.body(email)}</p>
+        <p className="text-ink-secondary">{t.auth.checkEmail.hint}</p>
+      </div>
       <CodeForm next={next} />
-      <p className="mt-10 text-sm">
-        <Link
-          href={`/logg-inn?next=${encodeURIComponent(next)}`}
-          className="underline underline-offset-4 hover:no-underline"
-        >
-          {t.auth.checkEmail.wrongEmail}
-        </Link>
-      </p>
+      <Link href={`/logg-inn?next=${encodeURIComponent(next)}`} className="prose-link text-small text-ink-secondary">
+        {t.auth.checkEmail.wrongEmail}
+      </Link>
     </>
   );
 }
@@ -35,7 +32,7 @@ async function CodeStep({ searchParams }: { searchParams: PageProps<"/logg-inn/k
 export default function CodePage({ searchParams }: PageProps<"/logg-inn/kode">) {
   return (
     <AuthShell title={t.auth.checkEmail.title}>
-      <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
+      <Suspense fallback={<p className="text-ink-secondary">{t.common.loading}</p>}>
         <CodeStep searchParams={searchParams} />
       </Suspense>
     </AuthShell>
