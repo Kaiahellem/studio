@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddRow } from "@/components/ds/add-row";
+import { Card, cardClass } from "@/components/ds/card";
+import { EmptyState } from "@/components/ds/empty-state";
+import { InsetGroupedList, InsetRow } from "@/components/ds/list-row";
+import { PageHeader } from "@/components/ds/page-header";
+import { Section } from "@/components/ds/section";
+import { Tag } from "@/components/ds/tag";
 import { ActionButton, ActionForm, Field, Select } from "@/components/form";
-import { Badge, PageHeader, Section } from "@/components/ui";
 import { addRequestTimeAction, deleteTimeAction, updateRequestAction } from "@/features/maintenance/actions";
 import { RequestStatus } from "@/features/maintenance/components";
 import { getRequestForAdmin } from "@/features/maintenance/queries";
@@ -24,75 +29,83 @@ export default async function ChangeRequestPage({ params }: PageProps<"/studio/c
   const total = time.reduce((sum, e) => sum + e.minutes, 0);
 
   return (
-    <>
+    <div className="flex flex-col gap-10">
       <PageHeader
         title={request.title}
-        eyebrow={
-          <>
-            <Link href="/studio/change-requests" className="underline underline-offset-4 hover:no-underline">
-              {s.heading}
-            </Link>
-            {" · "}
-            <Link href={`/studio/clients/${request.clients?.id}`} className="underline underline-offset-4 hover:no-underline">
-              {request.clients?.name}
-            </Link>
-          </>
-        }
-        actions={
-          <div className="flex flex-wrap gap-2">
-            {request.urgency === "urgent" && <Badge tone="danger">{r.urgent}</Badge>}
-            <RequestStatus status={request.status} />
-          </div>
-        }
+        trail={[
+          { label: s.heading, href: "/studio/change-requests" },
+          ...(request.clients ? [{ label: request.clients.name, href: `/studio/clients/${request.clients.id}` }] : []),
+        ]}
+        properties={[
+          {
+            label: s.status,
+            value: (
+              <span className="inline-flex flex-wrap gap-1.5 sm:justify-end">
+                {request.urgency === "urgent" && <Tag tone="brick">{r.urgent}</Tag>}
+                <RequestStatus status={request.status} />
+              </span>
+            ),
+          },
+          { label: r.sentLabel, value: `${createdBy} · ${formatDateTime(request.created_at)}` },
+          { label: s.project, value: request.projects?.name },
+          { label: t.studio.agreements.heading, value: agreement?.maintenance_plans?.name },
+          { label: s.billing, value: r.billing[request.billing] },
+        ]}
       />
 
-      <div className="grid gap-x-12 lg:grid-cols-[3fr_2fr]">
-        <div>
-          <p className="mb-2 text-sm text-muted">
-            {createdBy} · {formatDateTime(request.created_at)} · {request.projects?.name}
-            {agreement?.maintenance_plans && ` · ${agreement.maintenance_plans.name}`}
-          </p>
-          {request.description && <p className="mb-10 max-w-prose whitespace-pre-line leading-relaxed">{request.description}</p>}
+      <div className="grid gap-10 lg:grid-cols-[3fr_2fr]">
+        <div className="flex min-w-0 flex-col gap-10">
+          {request.description && <p className="max-w-prose whitespace-pre-line text-body-l">{request.description}</p>}
 
           {files.length > 0 && (
-            <Section id="attachments" title={s.attachments}>
+            <Section id="attachments" title={s.attachments} card={false}>
               <FileList files={files} />
             </Section>
           )}
 
-          <Section id="time" title={s.time} actions={<span className="text-sm text-muted">{s.total(formatMinutes(total))}</span>}>
+          <Section id="time" title={s.time} card={false} description={s.total(formatMinutes(total))}>
             {time.length === 0 ? (
-              <p className="mb-6 text-muted">{s.noTime}</p>
+              <Card>
+                <EmptyState>{s.noTime}</EmptyState>
+              </Card>
             ) : (
-              <ul className="mb-6 divide-y divide-line border-y border-line">
+              <InsetGroupedList label={s.time}>
                 {time.map((e) => (
-                  <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                    <span>
-                      <span className="font-medium">{formatMinutes(e.minutes)}</span>
-                      <span className="text-muted"> · {formatDate(e.entry_date)}</span>
+                  <InsetRow
+                    key={e.id}
+                    actions={
+                      <ActionButton
+                        action={deleteTimeAction.bind(null, e.id)}
+                        label={t.common.delete}
+                        ariaLabel={s.deleteTime(e.description ?? formatMinutes(e.minutes))}
+                        variant="ghost"
+                      />
+                    }
+                  >
+                    <p className="py-1">
+                      <span className="font-medium tabular-nums">{formatMinutes(e.minutes)}</span>
+                      <span className="text-ink-secondary"> · {formatDate(e.entry_date)}</span>
                       {e.description && <span> · {e.description}</span>}
-                    </span>
-                    <ActionButton
-                      action={deleteTimeAction.bind(null, e.id)}
-                      label={t.common.delete}
-                      ariaLabel={s.deleteTime(e.description ?? formatMinutes(e.minutes))}
-                      variant="danger"
-                    />
-                  </li>
+                    </p>
+                  </InsetRow>
                 ))}
-              </ul>
+              </InsetGroupedList>
             )}
-            <ActionForm action={addRequestTimeAction.bind(null, request.id)} submitLabel={s.addTime} pendingLabel={t.common.loading}>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <Field label={s.duration} hint={s.durationHint} name="minutes" required inputMode="decimal" />
-                <Field label={s.date} name="entry_date" type="date" defaultValue={todayInOslo()} />
+            <AddRow label={s.addTime}>
+              <div className={cardClass("card")}>
+                <ActionForm action={addRequestTimeAction.bind(null, request.id)} submitLabel={s.addTime} pendingLabel={t.common.loading}>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <Field label={s.duration} hint={s.durationHint} name="minutes" required inputMode="decimal" />
+                    <Field label={s.date} name="entry_date" type="date" defaultValue={todayInOslo()} />
+                  </div>
+                  <Field label={s.note} name="description" />
+                </ActionForm>
               </div>
-              <Field label={s.note} name="description" />
-            </ActionForm>
+            </AddRow>
           </Section>
         </div>
 
-        <div>
+        <div className="flex min-w-0 flex-col gap-10">
           <Section id="triage" title={s.triage}>
             <ActionForm action={updateRequestAction.bind(null, request.id)} submitLabel={s.save} pendingLabel={t.common.loading}>
               <Select
@@ -119,6 +132,6 @@ export default async function ChangeRequestPage({ params }: PageProps<"/studio/c
           <CommentThread target={{ changeRequestId: request.id }} comments={comments} allowInternal />
         </div>
       </div>
-    </>
+    </div>
   );
 }
