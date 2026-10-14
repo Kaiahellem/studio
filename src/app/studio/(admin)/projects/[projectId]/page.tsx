@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddRow, EditDisclosure } from "@/components/ds/add-row";
+import { buttonVariants } from "@/components/ds/button";
 import { cardClass } from "@/components/ds/card";
 import { InsetGroupedList, InsetRow } from "@/components/ds/list-row";
 import { PageHeader } from "@/components/ds/page-header";
@@ -189,6 +190,11 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
       <PageHeader
         title={project.name}
         trail={project.clients ? [{ label: project.clients.name, href: `/studio/clients/${project.clients.id}` }] : []}
+        actions={
+          <a href={`/studio/projects/${project.id}/brief`} download title={t.studio.brief.downloadHint} className={buttonVariants.secondary}>
+            {t.studio.brief.download}
+          </a>
+        }
         properties={[
           { label: p.status, value: <Tag tone={projectTone[project.status]}>{labels.projectStatus[project.status]}</Tag> },
           { label: p.template, value: project.process_templates?.name },
