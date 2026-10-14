@@ -63,16 +63,62 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"app_settings": {
+                },"analysis_pages": {
                   Row: {
-                    "allowed_mime_types": (string)[],"id": boolean,"max_upload_bytes": number,"reminder_after_days": number,"reminder_interval_days": number,"updated_at": string
+                    "contacts": NonNullable<Json>,"ctas": NonNullable<Json>,"headings": NonNullable<Json>,"id": number,"images": NonNullable<Json>,"main_text": string | null,"meta_description": string | null,"position": number,"run_id": string,"status_code": number | null,"title": string | null,"url": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "allowed_mime_types"?: (string)[],"id"?: boolean,"max_upload_bytes"?: number,"reminder_after_days"?: number,"reminder_interval_days"?: number,"updated_at"?: string
+                    "contacts"?: NonNullable<Json>,"ctas"?: NonNullable<Json>,"headings"?: NonNullable<Json>,"id"?: never,"images"?: NonNullable<Json>,"main_text"?: string | null,"meta_description"?: string | null,"position": number,"run_id": string,"status_code"?: number | null,"title"?: string | null,"url": string
                   }
                   Update: {
-                    "allowed_mime_types"?: (string)[],"id"?: boolean,"max_upload_bytes"?: number,"reminder_after_days"?: number,"reminder_interval_days"?: number,"updated_at"?: string
+                    "contacts"?: NonNullable<Json>,"ctas"?: NonNullable<Json>,"headings"?: NonNullable<Json>,"id"?: never,"images"?: NonNullable<Json>,"main_text"?: string | null,"meta_description"?: string | null,"position"?: number,"run_id"?: string,"status_code"?: number | null,"title"?: string | null,"url"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "analysis_pages_run_id_fkey"
+      columns: ["run_id"]
+isOneToOne: false
+      referencedRelation: "analysis_runs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"analysis_runs": {
+                  Row: {
+                    "analysis_id": string,"cost_ore": number | null,"error": string | null,"finished_at": string | null,"id": string,"input_tokens": number | null,"mode": string,"model": string | null,"notes_snapshot": NonNullable<Json>,"output_tokens": number | null,"page_limit": number,"pages_read": number,"prompt_version_id": string | null,"result": Json | null,"started_at": string,"status": string,"status_changed_at": string,"technical": Json | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "analysis_id": string,"cost_ore"?: number | null,"error"?: string | null,"finished_at"?: string | null,"id"?: string,"input_tokens"?: number | null,"mode"?: string,"model"?: string | null,"notes_snapshot"?: NonNullable<Json>,"output_tokens"?: number | null,"page_limit": number,"pages_read"?: number,"prompt_version_id"?: string | null,"result"?: Json | null,"started_at"?: string,"status"?: string,"status_changed_at"?: string,"technical"?: Json | null
+                  }
+                  Update: {
+                    "analysis_id"?: string,"cost_ore"?: number | null,"error"?: string | null,"finished_at"?: string | null,"id"?: string,"input_tokens"?: number | null,"mode"?: string,"model"?: string | null,"notes_snapshot"?: NonNullable<Json>,"output_tokens"?: number | null,"page_limit"?: number,"pages_read"?: number,"prompt_version_id"?: string | null,"result"?: Json | null,"started_at"?: string,"status"?: string,"status_changed_at"?: string,"technical"?: Json | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "analysis_runs_analysis_id_fkey"
+      columns: ["analysis_id"]
+isOneToOne: false
+      referencedRelation: "site_analyses"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "analysis_runs_prompt_version_id_fkey"
+      columns: ["prompt_version_id"]
+isOneToOne: false
+      referencedRelation: "prompt_templates"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"app_settings": {
+                  Row: {
+                    "allowed_mime_types": (string)[],"analysis_page_limit": number,"id": boolean,"max_upload_bytes": number,"reminder_after_days": number,"reminder_interval_days": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allowed_mime_types"?: (string)[],"analysis_page_limit"?: number,"id"?: boolean,"max_upload_bytes"?: number,"reminder_after_days"?: number,"reminder_interval_days"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "allowed_mime_types"?: (string)[],"analysis_page_limit"?: number,"id"?: boolean,"max_upload_bytes"?: number,"reminder_after_days"?: number,"reminder_interval_days"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -562,6 +608,46 @@ isOneToOne: false
       columns: ["template_id"]
 isOneToOne: false
       referencedRelation: "process_templates"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"prompt_templates": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string | null,"id": string,"key": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"key": string,"version": number
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"key"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"site_analyses": {
+                  Row: {
+                    "business_name": string,"client_id": string | null,"created_at": string,"created_by": string | null,"goals": string | null,"id": string,"project_id": string | null,"stated_problems": string | null,"updated_at": string,"url": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "business_name": string,"client_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"goals"?: string | null,"id"?: string,"project_id"?: string | null,"stated_problems"?: string | null,"updated_at"?: string,"url": string
+                  }
+                  Update: {
+                    "business_name"?: string,"client_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"goals"?: string | null,"id"?: string,"project_id"?: string | null,"stated_problems"?: string | null,"updated_at"?: string,"url"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "site_analyses_client_id_fkey"
+      columns: ["client_id"]
+isOneToOne: false
+      referencedRelation: "clients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "site_analyses_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
       referencedColumns: ["id"]
     }
                   ]
