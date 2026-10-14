@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { expect, test } from "@playwright/test";
-import { createAdminWithTotp, loginAsAdmin } from "./helpers";
+import { createAdminWithTotp, loginAsAdmin, service } from "./helpers";
 
 // Website analysis, manual mode (docs/PLAN-ANALYSIS.md): a small local site is crawled, the
 // bundle is downloaded, Claude's answer is pasted back. PageSpeed is faked (ANALYSIS_FAKES).
@@ -27,7 +27,20 @@ test.beforeAll(async () => {
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
   site = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
-test.afterAll(() => new Promise<void>((r) => server.close(() => r())));
+test.afterAll(async () => {
+  await new Promise<void>((r) => server.close(() => r()));
+  // Leave the instructions as they were: remove this file's analyses, then the versions it saved.
+  const admins = (await service.from("admins").select("user_id")).data ?? [];
+  const testAdmins = [];
+  for (const { user_id } of admins) {
+    const email = (await service.auth.admin.getUserById(user_id)).data.user?.email ?? "";
+    if (email.endsWith("@e2e.test")) testAdmins.push(user_id);
+  }
+  if (testAdmins.length) {
+    await service.from("site_analyses").delete().in("created_by", testAdmins);
+    await service.from("prompt_templates").delete().in("created_by", testAdmins);
+  }
+});
 
 const answer = (urls: { front: string; contact: string }, title = "Telefonnummeret er ikke klikkbart") => `Her er analysen:
 

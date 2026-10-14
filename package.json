@@ -18,7 +18,8 @@
     "db:env": "supabase status -o env",
     "db:types": "supabase gen types typescript --local > src/lib/db/types.ts.tmp && mv src/lib/db/types.ts.tmp src/lib/db/types.ts",
     "seed": "node --experimental-strip-types --env-file=.env.local scripts/seed-demo.mts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:clean": "node --experimental-strip-types --env-file=.env.local scripts/clean-test-data.mts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

@@ -28,6 +28,7 @@ Demo users: `ola@fjordlys.example`, `kari@fjordlys.example` (Fjordlys Rør AS) a
 pnpm check      # lint + type check + unit tests
 pnpm test:rls   # RLS isolation tests (needs `pnpm db:start`)
 pnpm test:e2e   # Playwright: login, all milestone flows, isolation, axe (WCAG 2.1 AA), desktop and mobile
+pnpm db:clean   # remove what the tests leave in the local database (keeps your admin and the demo)
 ```
 
 ## Hosted Supabase settings
