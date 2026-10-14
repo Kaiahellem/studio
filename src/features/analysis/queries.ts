@@ -133,13 +133,66 @@ export async function getPromptVersions() {
   return data;
 }
 
-// Analyses linked to a client or project, for links on their admin pages.
-export async function getLinkedAnalyses(filter: { clientId?: string; projectId?: string }) {
+// Analyses for an admin page. For a project: those linked to the project, and those linked to
+// its client without a project (they belong to every project of that client).
+export async function getLinkedAnalyses(filter: { clientId: string; projectId?: string }) {
   const supabase = await createClient();
-  let query = supabase.from("site_analyses").select("id, business_name, url").order("updated_at", { ascending: false });
-  if (filter.clientId) query = query.eq("client_id", filter.clientId);
-  if (filter.projectId) query = query.eq("project_id", filter.projectId);
+  let query = supabase.from("site_analyses").select("id, business_name, url, project_id").order("updated_at", { ascending: false });
+  query = filter.projectId
+    ? query.or(`project_id.eq.${filter.projectId},and(client_id.eq.${filter.clientId},project_id.is.null)`)
+    : query.eq("client_id", filter.clientId);
   const { data, error } = await query;
   if (error) throw error;
   return data;
+}
+
+export type BriefAnalysis =
+  | {
+      included: true;
+      id: string;
+      businessName: string;
+      url: string;
+      ranAt: string;
+      result: AnalysisResult;
+      technical: TechnicalReport | null;
+      via: "project" | "client";
+    }
+  | { included: false; id: string; businessName: string; reason: "not_done" }
+  | null;
+
+// The analysis that goes into a project's brief: the newest finished run, preferring analyses
+// linked to the project over those linked only to the client. Shared by the brief and the
+// project page, so what the page says is what the brief contains.
+export async function getBriefAnalysis(projectId: string, clientId: string): Promise<BriefAnalysis> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("site_analyses")
+    .select("id, business_name, url, project_id, analysis_runs(status, started_at, result, technical)")
+    .or(`project_id.eq.${projectId},and(client_id.eq.${clientId},project_id.is.null)`);
+  if (error) throw error;
+  if (data.length === 0) return null;
+
+  const candidates = data
+    .flatMap((a) =>
+      a.analysis_runs
+        .filter((r) => r.status === "done")
+        .map((r) => ({ a, r, parsed: resultSchema.safeParse(r.result) }))
+        .filter((x) => x.parsed.success),
+    )
+    .sort((x, y) => Number(y.a.project_id === projectId) - Number(x.a.project_id === projectId) || y.r.started_at.localeCompare(x.r.started_at));
+  const best = candidates[0];
+  if (!best) {
+    const first = [...data].sort((x, y) => Number(y.project_id === projectId) - Number(x.project_id === projectId))[0];
+    return { included: false, id: first.id, businessName: first.business_name, reason: "not_done" };
+  }
+  return {
+    included: true,
+    id: best.a.id,
+    businessName: best.a.business_name,
+    url: best.a.url,
+    ranAt: best.r.started_at,
+    result: best.parsed.data as AnalysisResult,
+    technical: (best.r.technical as unknown as TechnicalReport | null) ?? null,
+    via: best.a.project_id === projectId ? "project" : "client",
+  };
 }

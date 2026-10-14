@@ -7,7 +7,7 @@ import { getLinkedAnalyses } from "./queries";
 const a = t.studio.analysis;
 
 // Admin pages only: analyses linked to this client or project. Nothing when there are none.
-export async function LinkedAnalyses(filter: { clientId?: string; projectId?: string }) {
+export async function LinkedAnalyses(filter: { clientId: string; projectId?: string }) {
   const analyses = await getLinkedAnalyses(filter);
   if (analyses.length === 0) return null;
   return (
@@ -17,7 +17,10 @@ export async function LinkedAnalyses(filter: { clientId?: string; projectId?: st
           <InsetRow key={item.id}>
             <Link href={`/studio/analyses/${item.id}`} className="flex flex-col py-1">
               <span className="font-medium">{item.business_name}</span>
-              <span className="text-small text-ink-secondary [overflow-wrap:anywhere]">{item.url.replace(/^https?:\/\//, "")}</span>
+              <span className="text-small text-ink-secondary [overflow-wrap:anywhere]">
+                {item.url.replace(/^https?:\/\//, "")}
+                {filter.projectId && !item.project_id && ` · ${t.studio.brief.viaClient}`}
+              </span>
             </Link>
           </InsetRow>
         ))}

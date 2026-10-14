@@ -23,6 +23,7 @@ import {
   updateStepAction,
 } from "@/features/projects/actions";
 import { LinkedAnalyses } from "@/features/analysis/linked";
+import { getBriefAnalysis } from "@/features/analysis/queries";
 import { getProjectForEditing } from "@/features/projects/queries";
 import { stepTurn, toTurnStep } from "@/features/projects/turn";
 import { formatDate, formatDateShort, formatWeek } from "@/lib/format/nb";
@@ -184,6 +185,7 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
   const editor = await getProjectForEditing(projectId);
   if (!editor) notFound();
   const { project, phases, forms } = editor;
+  const briefAnalysis = await getBriefAnalysis(project.id, project.client_id);
 
   return (
     <div className="flex flex-col gap-10">
@@ -202,6 +204,18 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
           {
             label: p.targetLaunch,
             value: project.target_launch_date ? `${formatDate(project.target_launch_date)}, ${formatWeek(project.target_launch_date)}` : null,
+          },
+          {
+            label: t.studio.brief.analysisLabel,
+            value: !briefAnalysis ? (
+              <span className="text-ink-secondary">{t.studio.brief.analysisNone}</span>
+            ) : (
+              <Link href={`/studio/analyses/${briefAnalysis.id}`} className="prose-link">
+                {briefAnalysis.included
+                  ? `${t.studio.brief.analysisIncluded(briefAnalysis.businessName, formatDate(briefAnalysis.ranAt))}${briefAnalysis.via === "client" ? ` (${t.studio.brief.viaClient})` : ""}`
+                  : t.studio.brief.analysisNotDone(briefAnalysis.businessName)}
+              </Link>
+            ),
           },
         ]}
       />
@@ -241,7 +255,7 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
               <Checkbox label={p.remindersEnabled} name="reminders_enabled" defaultChecked={project.reminders_enabled} />
             </ActionForm>
           </Section>
-          <LinkedAnalyses projectId={project.id} />
+          <LinkedAnalyses projectId={project.id} clientId={project.client_id} />
         </div>
       </div>
     </div>

@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uuid } from "@/lib/forms";
-import type { TechnicalReport } from "@/features/analysis/bundle";
-import { resultSchema } from "@/features/analysis/result";
+import { getBriefAnalysis } from "@/features/analysis/queries";
 import { displayAnswer, parseDefinition, type Answers } from "@/features/forms/schema";
 import { readContent } from "@/features/handover/content";
 import { t } from "@/i18n/nb";
@@ -20,7 +19,7 @@ export async function getBriefData(projectId: string): Promise<BriefData> {
   if (!uuid.safeParse(projectId).success) notFound();
   const supabase = await createClient();
 
-  const [project, steps, site, handover, files, documents, analyses] = await Promise.all([
+  const [project, steps, site, handover, files, documents] = await Promise.all([
     supabase.from("projects").select("*, clients(*)").eq("id", projectId).maybeSingle(),
     supabase
       .from("project_steps")
@@ -33,14 +32,10 @@ export async function getBriefData(projectId: string): Promise<BriefData> {
     supabase.from("handover_pages").select("handover_sections(kind, content)").eq("project_id", projectId).maybeSingle(),
     supabase.from("files").select("name, size_bytes, mime_type, storage_path, project_steps(title)").eq("project_id", projectId).is("change_request_id", null).order("created_at"),
     supabase.from("documents").select("type, title, status, document_date").eq("project_id", projectId).order("document_date"),
-    supabase
-      .from("site_analyses")
-      .select("url, analysis_runs(status, started_at, result, technical)")
-      .eq("project_id", projectId)
-      .order("updated_at", { ascending: false }),
   ]);
-  for (const r of [project, steps, site, handover, files, documents, analyses]) if (r.error) throw r.error;
+  for (const r of [project, steps, site, handover, files, documents]) if (r.error) throw r.error;
   if (!project.data || !project.data.clients) notFound();
+  const analysis = await getBriefAnalysis(projectId, project.data.client_id);
 
   const ordered = [...steps.data!].sort((a, b) => (a.project_phases?.position ?? 0) - (b.project_phases?.position ?? 0) || a.position - b.position);
 
@@ -78,10 +73,6 @@ export async function getBriefData(projectId: string): Promise<BriefData> {
     ? (await supabase.storage.from("project-files").createSignedUrls(files.data!.map((f) => f.storage_path), LINK_DAYS * 24 * 60 * 60)).data ?? []
     : [];
 
-  // The newest finished run of any analysis linked to the project.
-  const runs = analyses.data!.flatMap((a) => a.analysis_runs.filter((r) => r.status === "done").map((r) => ({ url: a.url, ...r })));
-  const latest = runs.sort((x, y) => y.started_at.localeCompare(x.started_at))[0];
-  const parsed = latest ? resultSchema.safeParse(latest.result) : null;
 
   const p = project.data;
   const c = p.clients!;
@@ -118,7 +109,7 @@ export async function getBriefData(projectId: string): Promise<BriefData> {
     site: siteFields,
     brand: { colours: section("colours").colours, fonts: section("fonts").fonts, links: linksContacts.links, contacts: linksContacts.contacts },
     approvals,
-    analysis: latest && parsed?.success ? { url: latest.url, ranAt: latest.started_at, result: parsed.data, technical: (latest.technical as unknown as TechnicalReport) ?? null } : null,
+    analysis: analysis?.included ? { url: analysis.url, ranAt: analysis.ranAt, result: analysis.result, technical: analysis.technical } : null,
     files: files.data!.map((f) => ({
       name: f.name,
       step: f.project_steps?.title ?? null,

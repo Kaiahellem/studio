@@ -180,7 +180,7 @@ export default async function AnalysisPage({ params, searchParams }: PageProps<"
             </dl>
           </Section>
 
-          <Section id="link" title={a.link.heading}>
+          <Section id="link" title={a.link.heading} description={a.link.hint}>
             <ActionForm action={linkAction.bind(null, analysis.id)} submitLabel={a.link.save} pendingLabel={t.common.loading}>
               <Select
                 label={a.link.client}

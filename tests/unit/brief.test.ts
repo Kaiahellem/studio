@@ -47,7 +47,7 @@ describe("project brief", () => {
     expect(md).toContain("- **Endringer ønsket**: Flytt priser opp");
     expect(md).toContain("[logo.svg (2 kB, Last opp logo)](https://signed.example/logo.svg?token=x)");
     expect(md).toContain("Lenkene virker i 7 dager.");
-    expect(md).toContain("Ingen ferdig analyse er koblet til prosjektet.");
+    expect(md).toContain("Ingen ferdig analyse er koblet til prosjektet eller kunden.");
   });
 
   it("ends with structured data the agent can read", () => {
