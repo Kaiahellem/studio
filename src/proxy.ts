@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Paths reachable without a session. Everything else redirects to /logg-inn?next=…
-const PUBLIC_PATHS = ["/logg-inn", "/auth/", "/personvern", "/overlevering/", "/api/cron/"];
+const PUBLIC_PATHS = ["/logg-inn", "/auth/", "/personvern", "/bot", "/overlevering/", "/api/cron/"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((p) => (p.endsWith("/") ? pathname.startsWith(p) : pathname === p || pathname.startsWith(`${p}/`)));

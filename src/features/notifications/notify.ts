@@ -253,7 +253,7 @@ export async function checkHours(projectId: string) {
 const DAY = 24 * 60 * 60_000;
 
 export async function runDailyJobs(now = new Date()) {
-  const summary = { reminders: 0, renewals: 0, hoursChecked: 0 };
+  const summary = { reminders: 0, renewals: 0, hoursChecked: 0, analysesDeleted: 0 };
   const { data: settings } = await db().from("app_settings").select("reminder_after_days, reminder_interval_days").single();
   const afterDays = settings?.reminder_after_days ?? 5;
   const intervalDays = settings?.reminder_interval_days ?? 7;
@@ -302,5 +302,18 @@ export async function runDailyJobs(now = new Date()) {
     await checkHours(a.project_id);
     summary.hoursChecked++;
   }
+
+  // Website analyses not linked to a client are deleted after 12 months without activity
+  // (docs/PLAN-ANALYSIS.md §6). Re-running an analysis touches updated_at.
+  const cutoff = new Date(now);
+  cutoff.setMonth(cutoff.getMonth() - 12);
+  const { data: deleted } = await db()
+    .from("site_analyses")
+    .delete()
+    .is("client_id", null)
+    .is("project_id", null)
+    .lt("updated_at", cutoff.toISOString())
+    .select("id");
+  summary.analysesDeleted = deleted?.length ?? 0;
   return summary;
 }

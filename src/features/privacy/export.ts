@@ -19,6 +19,9 @@ export async function buildClientExport(clientId: string): Promise<{ zip: Uint8A
   const requests = (await db.from("change_requests").select("*").eq("client_id", clientId)).data ?? [];
   const logEntries = (await db.from("maintenance_log").select("*").eq("client_id", clientId)).data ?? [];
   const pages = (await db.from("handover_pages").select("*").in("project_id", projectIds)).data ?? [];
+  const analyses = (await db.from("site_analyses").select("*").eq("client_id", clientId)).data ?? [];
+  const analysisRuns = (await db.from("analysis_runs").select("*").in("analysis_id", analyses.map((x) => x.id))).data ?? [];
+  const analysisPages = (await db.from("analysis_pages").select("*").in("run_id", analysisRuns.map((r) => r.id))).data ?? [];
 
   const [privateNotes, members, phases, rounds, approvals, responses, comments, documents, files, site, sections, agreements, time, activity] =
     await Promise.all([
@@ -78,6 +81,9 @@ export async function buildClientExport(clientId: string): Promise<{ zip: Uint8A
     time_entries: time.data,
     maintenance_log: logEntries,
     activity_log: activity.data,
+    site_analyses: analyses,
+    analysis_runs: analysisRuns,
+    analysis_pages: analysisPages,
   };
 
   // Files go in as stored, uncompressed (images and PDFs are compressed already).

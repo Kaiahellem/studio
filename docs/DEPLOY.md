@@ -45,8 +45,9 @@ A checklist for the first deploy. Everything here is done once; later changes ar
    | `RESEND_API_KEY` | From step 1 |
    | `EMAIL_FROM` | e.g. `Studio <hei@ditt-domene.no>` |
    | `CRON_SECRET` | `openssl rand -hex 24` |
+   | `PAGESPEED_API_KEY` | Optional, for website analysis. Google Cloud → APIs & Services → enable "PageSpeed Insights API" → Credentials → API key, restricted to that API. Works without a key at low volume. |
 
-   Do **not** set `MAILPIT_URL` in production.
+   Do **not** set `MAILPIT_URL` or `ANALYSIS_FAKES` in production.
 3. Add your domain in Vercel and point DNS to it.
 4. The daily job (`vercel.json` → `/api/cron/daily`, 06:00 UTC) starts automatically.
 
@@ -62,7 +63,9 @@ authenticator app; add a second one (e.g. 1Password) as a backup.
 
 ## 5. Before the first real client
 
-- Replace the placeholder on `/personvern` (`src/i18n/nb.ts` → `privacy`) with your privacy notice.
+- Replace the placeholder on `/personvern` (`src/i18n/nb.ts` → `privacy`) with your privacy notice. It includes a draft
+  sentence about website analysis with Claude; keep it in some form if you use analyses.
+- Website analysis in manual mode uses your Claude subscription: turn off "Help improve Claude" in Claude's settings.
 - Adjust the maintenance plan (Studio → Planer) and upload limits (Studio → Innstillinger).
 - Send yourself a test invitation from a test client, log in on your phone, and walk one step.
 - Supabase free projects pause after a week without activity; upgrade to Pro once clients rely on it.
