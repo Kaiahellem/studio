@@ -21,6 +21,7 @@ import {
   updateProjectAction,
   updateStepAction,
 } from "@/features/projects/actions";
+import { LinkedAnalyses } from "@/features/analysis/linked";
 import { getProjectForEditing } from "@/features/projects/queries";
 import { stepTurn, toTurnStep } from "@/features/projects/turn";
 import { formatDate, formatDateShort, formatWeek } from "@/lib/format/nb";
@@ -216,7 +217,7 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
           </AddRow>
         </section>
 
-        <div>
+        <div className="flex flex-col gap-10">
           <Section id="settings" title={p.settings}>
             <ActionForm action={updateProjectAction.bind(null, project.id)} submitLabel={p.save} pendingLabel={t.common.loading}>
               <Field label={p.name} name="name" required defaultValue={project.name} />
@@ -234,6 +235,7 @@ export default async function ProjectPage({ params }: PageProps<"/studio/project
               <Checkbox label={p.remindersEnabled} name="reminders_enabled" defaultChecked={project.reminders_enabled} />
             </ActionForm>
           </Section>
+          <LinkedAnalyses projectId={project.id} />
         </div>
       </div>
     </div>

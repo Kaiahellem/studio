@@ -12,6 +12,7 @@ const groups: NavGroup[] = [
     items: [
       { href: "/studio", label: n.dashboard, exact: true, icon: "overview" },
       { href: "/studio/clients", label: n.clients, icon: "clients" },
+      { href: "/studio/analyses", label: n.analyses, icon: "analyses" },
       { href: "/studio/change-requests", label: n.requests, icon: "inbox" },
       { href: "/studio/plans", label: n.plans, icon: "plans" },
     ],

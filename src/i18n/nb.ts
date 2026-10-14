@@ -31,6 +31,7 @@ export const nb = {
     back: "Tilbake",
     remove: "Fjern",
     cancel: "Avbryt",
+    copyFailed: "Kopieringen ble blokkert av nettleseren. Last ned filen i stedet.",
     edit: "Rediger",
     up: "Opp",
     down: "Ned",
@@ -830,6 +831,7 @@ export const nb = {
         save: "Lagre notater",
         saved: "Notatene er lagret. Kjør analysen på nytt for å bruke dem.",
         editNotes: "Rediger notater",
+        notes: "Notater",
         invalidUrl: "Skriv en hel adresse som starter med https://.",
       },
       properties: { url: "Nettadresse", linked: "Koblet til", lastRun: "Siste kjøring", mode: "Analyse", pages: "Sider lest", version: "Instruksjoner" },
@@ -983,9 +985,19 @@ export const nb = {
       },
     },
   },
+  bot: {
+    title: "Om PortalBot",
+    body: [
+      "PortalBot leser offentlige nettsider på oppdrag fra en webdesigner, for å gi råd om hvordan en nettside kan bli bedre.",
+      "Den leser bare sider som er åpne for alle, følger reglene i robots.txt, henter én side om gangen og leser høyst noen titalls sider per nettsted. Den logger aldri inn, sender aldri inn skjemaer og endrer ingenting.",
+      "Vil du ikke at PortalBot skal lese nettstedet ditt, legg til «User-agent: PortalBot» og «Disallow: /» i robots.txt.",
+    ],
+  },
   privacy: {
     title: "Personvern",
     placeholder: "Personvernerklæringen kommer her.",
+    // Draft sentence for the final notice (docs/PLAN-ANALYSIS.md §6).
+    analysis: "For å gi råd om nettsider leser vi offentlige nettsider og bruker KI fra Anthropic (Claude) til å analysere dem. Det som sendes er tekst fra den offentlige nettsiden og våre notater om bedriften.",
   },
 } as const;
 

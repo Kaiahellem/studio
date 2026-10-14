@@ -234,7 +234,7 @@ export function FormMessage({ error, message }: { error?: string; message?: stri
       {error && (
         <p role="alert" className="flex items-start gap-2 rounded-inset bg-brick-bg px-4 py-3 text-body text-brick-fg">
           <Icon icon={CircleAlert} className="mt-[5px]" />
-          <span>{error}</span>
+          <span className="whitespace-pre-line">{error}</span>
         </p>
       )}
       {message && !error && (

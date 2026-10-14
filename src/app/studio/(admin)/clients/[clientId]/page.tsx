@@ -12,6 +12,7 @@ import { Section } from "@/components/ds/section";
 import { Tag } from "@/components/ds/tag";
 import { ActionButton, ActionForm, Field } from "@/components/form";
 import { inviteMemberAction, removeMemberAction, updateClientAction } from "@/features/clients/actions";
+import { LinkedAnalyses } from "@/features/analysis/linked";
 import { getClientDetails } from "@/features/clients/queries";
 import { formatOrgNumber, formatPhone, telHref } from "@/lib/format/nb";
 import { uuid } from "@/lib/forms";
@@ -91,6 +92,8 @@ export default async function ClientPage({ params }: PageProps<"/studio/clients/
               </InsetGroupedList>
             )}
           </Section>
+
+          <LinkedAnalyses clientId={client.id} />
 
           <Agreements clientId={client.id} />
 
