@@ -29,6 +29,7 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 240_000,
     // Login links in emails must point at this server.
-    env: { NEXT_PUBLIC_SITE_URL: BASE_URL },
+    // Website analysis: fake PageSpeed and allow the local fixture site (ignored unless localhost).
+    env: { NEXT_PUBLIC_SITE_URL: BASE_URL, ANALYSIS_FAKES: "1" },
   },
 });

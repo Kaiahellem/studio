@@ -86,6 +86,8 @@ test("studio pages", async ({ page }, testInfo) => {
     `/studio/projects/${user.projectId}/activity`,
     "/studio/change-requests",
     "/studio/plans",
+    "/studio/analyses",
+    "/studio/analyses/new",
     "/studio/settings",
     "/studio/sikkerhet",
   ]) {
